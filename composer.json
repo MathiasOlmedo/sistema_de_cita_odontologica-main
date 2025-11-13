@@ -1,0 +1,7 @@
+{
+    "name": "tu/paquete",
+    "description": "Sistema de citas odontológicas",
+    "require": {
+        "dompdf/dompdf": "^3.1"
+    }
+}
