@@ -39,117 +39,269 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
   <!-- FullCalendar v3 CSS -->
   <link rel="stylesheet" type="text/css" href="../src/css/fullcalendar.css" />
 
-  <!-- Tu CSS existente -->
-  <link rel="stylesheet" href="../src/css/admin.css">
+  <!-- Tu CSS existente (comentado para evitar conflictos con nuestro diseño) -->
+  <!-- <link rel="stylesheet" href="../src/css/admin.css"> -->
 
-  <!-- ======== Modelo estandarizado (sidebar unificado + calendario full height) ======== -->
+  <!-- ======== Diseño estandarizado mejorado ======== -->
   <style>
     :root{
-      --brand:#0d6efd; --brand-100:#e7f1ff;
-      --surface:#f8f9fa; --text:#212529;
-      --sidebar-w:260px; --maxw:1200px; --radius:12px;
+      --brand:#0d6efd;
+      --brand-hover:#0b5ed7;
+      --brand-100:#e7f1ff;
+      --brand-50:#f0f7ff;
+      --surface:#f5f7fa;
+      --text:#212529;
+      --text-muted:#6c757d;
+      --sidebar-w:240px;
+      --maxw:1600px;
+      --radius:10px;
+      --transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    *{ box-sizing: border-box; }
+    *{ box-sizing:border-box; margin:0; padding:0; }
     html, body { height:100%; }
     html{ overflow-y:auto; overflow-x:hidden; }
     body{
-      margin:0; background:var(--surface); color:var(--text);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      margin:0 !important; 
+      padding:0 !important;
+      background:var(--surface) !important; 
+      color:var(--text) !important;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif !important;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:block !important;
+      position:relative !important;
+    }
+    body:before{
+      display:none !important;
+      content:none !important;
     }
 
-    /* ===== Sidebar fijo, SIEMPRE visible, sin borde ni scroll propio ===== */
+    /* ===== Sidebar mejorado ===== */
     .sidebar{
-      position:fixed; top:0; left:0;
-      width:var(--sidebar-w); height:100vh;
-      background:#fff;
-      border-right:0 !important;      /* sin línea */
-      box-shadow:none !important;
-      transform:none !important;
-      z-index:1030;
-      padding:1.25rem 1rem;
-      overflow-y:hidden !important; overflow-x:hidden !important;
+      position:fixed !important; 
+      top:0 !important; 
+      left:0 !important;
+      width:var(--sidebar-w) !important; 
+      height:100vh !important;
+      background:linear-gradient(180deg, #ffffff 0%, #fafbfc 100%) !important;
+      border-right:1px solid rgba(0,0,0,.05) !important;
+      box-shadow:2px 0 12px rgba(0,0,0,.03) !important;
+      z-index:1030 !important;
+      padding:1rem 0.75rem !important;
+      overflow-y:auto !important;
+      overflow-x:hidden !important;
+      transform:translateX(0) !important;
+      -webkit-transform:translateX(0) !important;
+      -ms-transform:translateX(0) !important;
+      transition:var(--transition) !important;
     }
-    .sidebar::before, .sidebar::after{ content:none !important; display:none !important; }
-    .toggle, .js-menu-toggle{ display:none !important; pointer-events:none !important; }
+    aside.sidebar{
+      transform:translateX(0) !important;
+      -webkit-transform:translateX(0) !important;
+      -ms-transform:translateX(0) !important;
+    }
+    .sidebar::-webkit-scrollbar{ width:4px; }
+    .sidebar::-webkit-scrollbar-track{ background:transparent; }
+    .sidebar::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.1); border-radius:2px; }
+    .sidebar::-webkit-scrollbar-thumb:hover{ background:rgba(0,0,0,.2); }
 
-    /* Contenido del sidebar (idéntico al resto) */
-    .brand{ display:flex; align-items:center; gap:.75rem; padding:.5rem .75rem; border-radius:.75rem; }
-    .brand-title{ margin:0; font-weight:700; letter-spacing:.3px; color:var(--brand); font-size:1.05rem; }
+    .brand{ 
+      display:flex; align-items:center; gap:.65rem; 
+      padding:.75rem .65rem; border-radius:var(--radius);
+      margin-bottom:1rem;
+      transition:var(--transition);
+      cursor:pointer;
+    }
+    .brand:hover{ background:var(--brand-50); transform:translateX(2px); }
+    .brand img{ transition:var(--transition); }
+    .brand:hover img{ transform:scale(1.05); }
+    .brand-title{ margin:0; font-weight:700; letter-spacing:.2px; color:var(--brand); font-size:1rem; }
 
-    .side-inner{ padding-bottom:1rem; }
-    .profile{text-align:center; margin:1rem 0 1.25rem}
-    .profile img{ width:96px; height:96px; object-fit:cover }
-    .profile .name{ margin:.65rem 0 .2rem; font-weight:600 }
+    .side-inner{ padding-bottom:0.5rem; }
+    .profile{ 
+      text-align:center; 
+      margin:0.75rem 0 1rem;
+      padding:0.75rem;
+      background:var(--brand-50);
+      border-radius:var(--radius);
+      transition:var(--transition);
+    }
+    .profile:hover{ background:var(--brand-100); box-shadow:0 2px 8px rgba(13,110,253,.1); }
+    .profile img{ 
+      width:80px; height:80px; 
+      object-fit:cover;
+      border:3px solid #fff;
+      box-shadow:0 2px 8px rgba(0,0,0,.1);
+      transition:var(--transition);
+    }
+    .profile:hover img{ transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,.15); }
+    .profile .name{ margin:.5rem 0 .2rem; font-weight:600; font-size:0.95rem; color:var(--text); }
+    .profile .text-muted{ font-size:0.8rem; color:var(--text-muted); }
 
-    .nav-menu{ display:flex; flex-direction:column; gap:.25rem; }
+    .nav-menu{ display:flex; flex-direction:column; gap:0.25rem; list-style:none; padding:0; margin:0; }
     .nav-menu .nav-link{
-      display:flex; align-items:center; gap:.6rem;
-      border-radius:.6rem; padding:.6rem .75rem;
-      color:#495057; text-decoration:none;
+      display:flex; align-items:center; gap:.65rem;
+      border-radius:var(--radius); padding:.7rem .75rem;
+      color:var(--text); text-decoration:none;
+      font-size:0.9rem;
+      transition:var(--transition);
+      position:relative;
+      margin:0 0.25rem;
     }
-    .nav-menu .nav-link:hover,
-    .nav-menu .nav-link.active{
+    .nav-menu .nav-link i{
+      width:20px;
+      text-align:center;
+      transition:var(--transition);
+    }
+    .nav-menu .nav-link:hover{
       background:var(--brand-100); color:var(--brand);
       text-decoration:none; font-weight:600;
+      transform:translateX(4px);
+      box-shadow:0 2px 6px rgba(13,110,253,.15);
+    }
+    .nav-menu .nav-link:hover i{
+      transform:scale(1.15);
+      color:var(--brand);
+    }
+    .nav-menu .nav-link.active{
+      background:linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%);
+      color:#fff;
+      font-weight:600;
+      box-shadow:0 4px 12px rgba(13,110,253,.3);
+    }
+    .nav-menu .nav-link.active i{ color:#fff; }
+    .nav-menu .nav-link.active::before{
+      content:'';
+      position:absolute;
+      left:-0.75rem;
+      top:50%;
+      transform:translateY(-50%);
+      width:4px;
+      height:60%;
+      background:var(--brand);
+      border-radius:0 4px 4px 0;
     }
 
-    /* ===== Main empujado por sidebar ===== */
+    /* ===== Main mejorado ===== */
     main{
-      margin-left:var(--sidebar-w);
-      min-height:100vh;
-      display:flex; flex-direction:column;
+      margin-left:var(--sidebar-w) !important;
+      min-height:100vh !important;
+      display:flex !important; 
+      flex-direction:column !important;
+      transition:var(--transition) !important;
     }
-    .container-max{ width:100%; max-width:var(--maxw); margin:0 auto; padding:0 1rem; }
+    main.bg.bg-white{
+      margin-left:var(--sidebar-w) !important;
+    }
+    .container-max{ 
+      width:100%; 
+      max-width:var(--maxw); 
+      margin:0 auto; 
+      padding:0 2rem; 
+    }
 
-    /* Topbar */
+    /* Content */
+    .content{ padding:1.5rem 0 2rem; }
+
+    /* Topbar mejorado */
     .topbar{
-      background:#fff; border-bottom:1px solid rgba(0,0,0,.06);
-      padding:.75rem 0; position:sticky; top:0; z-index:10;
+      background:#fff !important; 
+      border-bottom:1px solid rgba(0,0,0,.06) !important;
+      padding:1rem 0 !important; 
+      position:sticky !important; 
+      top:0 !important; 
+      z-index:10 !important;
+      box-shadow:0 2px 8px rgba(0,0,0,.03) !important;
     }
 
-    /* Tarjeta del calendario */
-    .site-section{ padding:0; }
+    /* Tarjeta del calendario expandida */
     .calendar-card{
-      background:#fff; border:1px solid rgba(0,0,0,.06);
-      border-radius:var(--radius); box-shadow:0 6px 16px rgba(15,23,42,.06);
-      overflow:hidden; display:flex; flex-direction:column;
-      min-height: calc(100vh - 56px - 32px); /* altura útil */
-      margin: 1rem 0 1.5rem;
+      background:#fff !important; 
+      border:1px solid rgba(0,0,0,.06) !important;
+      border-radius:var(--radius) !important; 
+      box-shadow:0 4px 16px rgba(0,0,0,.08) !important;
+      overflow:hidden !important; 
+      display:flex !important; 
+      flex-direction:column !important;
+      min-height: calc(100vh - 150px) !important;
+      margin: 1.5rem 0 !important;
+      transition:var(--transition) !important;
+    }
+    .calendar-card:hover{
+      box-shadow:0 8px 24px rgba(0,0,0,.12);
+      transform:translateY(-2px);
     }
     .calendar-header{
-      padding:.85rem 1rem; background:#fff; border-bottom:1px solid rgba(0,0,0,.06);
-      display:flex; align-items:center; justify-content:space-between;
+      padding:1.25rem 1.75rem; 
+      background:linear-gradient(135deg, #fff 0%, #fafbfc 100%);
+      border-bottom:1px solid rgba(0,0,0,.06);
+      display:flex; 
+      align-items:center; 
+      justify-content:space-between;
     }
-    .calendar-title{ margin:0; font-weight:700; font-size:1.05rem; color:var(--brand) }
+    .calendar-title{ 
+      margin:0; 
+      font-weight:700; 
+      font-size:1.25rem; 
+      color:var(--brand);
+      transition:var(--transition);
+    }
+    .calendar-card:hover .calendar-title{ color:var(--brand-hover); }
 
-    .calendar-wrapper{ flex:1 1 auto; min-height:0; padding:.75rem; background:#fff; }
+    .calendar-wrapper{ 
+      flex:1 1 auto; 
+      min-height:0; 
+      padding:1.5rem; 
+      background:#fff; 
+    }
 
-    /* FullCalendar limpio y adaptable */
-    #calendar{ width:100%; height:100%; background:#fff; border:0; border-radius:10px; box-shadow:none; }
+    /* FullCalendar mejorado */
+    #calendar{ 
+      width:100%; 
+      height:100%; 
+      background:#fff; 
+      border:0; 
+      border-radius:var(--radius); 
+      box-shadow:none; 
+    }
     .fc{ font-size:.95rem; }
-    .fc-toolbar{ margin-bottom:.75rem; }
-    .fc-toolbar h2{ font-size:1.1rem; font-weight:700; color:#0d1b2a; }
+    .fc-toolbar{ margin-bottom:1rem; }
+    .fc-toolbar h2{ 
+      font-size:1.3rem; 
+      font-weight:700; 
+      color:var(--brand);
+      transition:var(--transition);
+    }
     .fc-button{
-      border-radius:.5rem !important; border:1px solid rgba(13,110,253,.25) !important;
-      background:#fff !important; color:#0d6efd !important;
-      text-shadow:none !important; box-shadow:none !important;
-      padding:.35rem .6rem !important;
+      border-radius:var(--radius) !important; 
+      border:1px solid rgba(13,110,253,.25) !important;
+      background:#fff !important; 
+      color:#0d6efd !important;
+      text-shadow:none !important; 
+      box-shadow:none !important;
+      padding:.5rem .75rem !important;
+      transition:var(--transition) !important;
+    }
+    .fc-button:hover{
+      background:var(--brand-100) !important;
+      transform:translateY(-2px);
+      box-shadow:0 4px 8px rgba(13,110,253,.2) !important;
     }
     .fc-state-active, .fc-button:focus{
-      outline:none !important; box-shadow:0 0 0 .15rem rgba(13,110,253,.15) !important;
+      outline:none !important; 
+      box-shadow:0 0 0 .15rem rgba(13,110,253,.15) !important;
     }
     .fc-day-grid-event .fc-content{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-    /* Responsive */
+    /* Responsive mejorado */
     @media (max-width:992px){
-      :root{ --sidebar-w:240px }
-      .sidebar{ width:var(--sidebar-w) }
-      main{ margin-left:var(--sidebar-w) }
+      :root{ --sidebar-w:220px; }
+      .sidebar{ padding:0.75rem 0.5rem; }
+      .container-max{ padding:0 1rem; }
     }
     @media (max-width:575.98px){
-      :root{ --sidebar-w:220px }
-      .sidebar{ width:var(--sidebar-w) }
-      main{ margin-left:var(--sidebar-w) }
+      :root{ --sidebar-w:200px; }
+      .container-max{ padding:0 0.75rem; }
       .fc-toolbar .fc-left, .fc-toolbar .fc-right, .fc-toolbar .fc-center{
         float:none !important; display:block; text-align:center; margin-bottom:.5rem;
       }
@@ -232,7 +384,7 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
 </head>
 
 <body>
-  <!-- ===== Sidebar unificado (igual al resto) ===== -->
+  <!-- ===== Sidebar estandarizado ===== -->
   <aside class="sidebar">
     <div class="brand mb-2">
       <img src="../src/img/logo.png" alt="Perfect Teeth" width="32" height="32">
@@ -241,13 +393,13 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
 
     <div class="side-inner">
       <div class="profile">
-        <img src="<?php echo $AVATAR_IMG; ?>" class="rounded-circle" alt="Perfil">
-        <h3 class="name"><?php echo $DOCTOR_NAME; ?></h3>
-        <span class="country text-muted">Perfect Teeth</span>
+        <img src="<?php echo $AVATAR_IMG; ?>" class="rounded-circle border" alt="Perfil">
+        <div class="name"><?php echo $DOCTOR_NAME; ?></div>
+        <div class="text-muted small">Panel de odontólogo</div>
       </div>
 
       <nav class="nav-menu">
-        <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='citas'?'active':''); ?>" href="/sistema_de_cita_odontologica-main/admin/inicioAdmin.php">
+        <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='citas'?'active':''); ?>" href="inicioAdmin.php">
           <i class="far fa-calendar-check"></i><span>Citas pendientes</span>
         </a>
         <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='calendario'?'active':''); ?>" href="calendar.php">
@@ -257,11 +409,11 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
           <i class="fas fa-tooth"></i><span>Odontograma</span>
         </a>
         <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='presupuestos'?'active':''); ?>" href="presupuestos_doctor.php">
-    <i class="fas fa-file-invoice-dollar"></i><span>Presupuestos</span>
-  </a>
-   <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='presupuestos'?'active':''); ?>" href="reportes_doctor.php">
-    <i class="fas fa-file-invoice-dollar"></i><span>Reportes</span>
-  </a>
+          <i class="fas fa-file-invoice-dollar"></i><span>Presupuestos</span>
+        </a>
+        <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='reportes'?'active':''); ?>" href="reportes_doctor.php">
+          <i class="fas fa-chart-line"></i><span>Reportes</span>
+        </a>
         <a class="nav-link" href="../php/cerrar.php">
           <i class="fas fa-sign-out-alt"></i><span>Cerrar sesión</span>
         </a>
@@ -283,7 +435,7 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
       </div>
     </div>
 
-    <div class="site-section">
+    <div class="content">
       <div class="container-max">
         <div class="calendar-card">
           <div class="calendar-header">

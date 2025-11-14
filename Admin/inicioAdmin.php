@@ -4,16 +4,23 @@ include_once('../php/consultas.php');
 
 if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 
+// Verificar si hay sesión de doctor (compatibilidad con id_doctor o id_usuario + tipo Doctor)
 if (isset($_SESSION['id_doctor'])) {
   $vUsuario = $_SESSION['id_doctor'];
-  $row = consultarDoctor($link, $vUsuario);
-  $resultadoCitas = MostrarCitas($link, $vUsuario); // mostrar citas
+} elseif (isset($_SESSION['id_usuario']) && isset($_SESSION['tipo']) && $_SESSION['tipo'] === 'Doctor') {
+  // Si hay id_usuario con tipo Doctor, establecer id_doctor para compatibilidad
+  $_SESSION['id_doctor'] = $_SESSION['id_usuario'];
+  $vUsuario = $_SESSION['id_doctor'];
 } else {
   $_SESSION['MensajeTexto'] = "Error: acceso al sistema no registrado.";
   $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
-  header("Location: ./index.php");
+  header("Location: ../index.php");
   exit;
 }
+
+// Obtener datos del doctor y sus citas
+$row = consultarDoctor($link, $vUsuario);
+$resultadoCitas = MostrarCitas($link, $vUsuario); // mostrar citas
 
 /* ====== Variables estandarizadas para el sidebar ====== */
 $SIDEBAR_ACTIVE = 'citas'; // 'citas' | 'calendario' | 'odontograma'
@@ -37,134 +44,265 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
   <link rel="stylesheet" href="../src/js/lib/datatable/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="../src/js/lib/datatable/css/responsive.dataTables.min.css">
 
-  <!-- ===== Diseño estandarizado (mismo look & feel) ===== -->
+  <!-- ===== Diseño estandarizado mejorado ===== -->
   <style>
     :root{
       --brand:#0d6efd;
+      --brand-hover:#0b5ed7;
       --brand-100:#e7f1ff;
-      --surface:#f8f9fa;
+      --brand-50:#f0f7ff;
+      --surface:#f5f7fa;
       --text:#212529;
-      --sidebar-w:260px;
-      --maxw:1200px;
-      --radius:12px;
+      --text-muted:#6c757d;
+      --sidebar-w:240px;
+      --maxw:1600px;
+      --radius:10px;
+      --transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    *{ box-sizing:border-box; }
+    *{ box-sizing:border-box; margin:0; padding:0; }
     html, body { height:100%; }
     html{ overflow-y:auto; overflow-x:hidden; }
     body{
       margin:0;
       background:var(--surface);
       color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
       font-feature-settings:"liga" 1, "calt" 1;
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
     }
 
-    /* ===== Sidebar fijo SIEMPRE visible, sin línea ni scroll propio ===== */
+    /* ===== Sidebar mejorado ===== */
     .sidebar{
-      background:#fff;
-      border-right:0 !important;         /* quita “línea” lateral */
-      box-shadow:none !important;
+      background:linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+      border-right:1px solid rgba(0,0,0,.05);
+      box-shadow:2px 0 12px rgba(0,0,0,.03);
 
       position:fixed; top:0; left:0;
       width:var(--sidebar-w); height:100vh;
-      padding:1.25rem 1rem;
-      overflow-y:hidden !important;       /* sin scroll interno */
-      overflow-x:hidden !important;
+      padding:1rem 0.75rem;
+      overflow-y:auto;
+      overflow-x:hidden;
       z-index:1030;
-      transform:none !important;          /* evita animaciones/colapsos */
+      transition:var(--transition);
     }
-    .sidebar::before,.sidebar::after{ content:none !important; display:none !important; }
-    .toggle,.js-menu-toggle{ display:none !important; pointer-events:none !important; }
+    .sidebar::-webkit-scrollbar{ width:4px; }
+    .sidebar::-webkit-scrollbar-track{ background:transparent; }
+    .sidebar::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.1); border-radius:2px; }
+    .sidebar::-webkit-scrollbar-thumb:hover{ background:rgba(0,0,0,.2); }
 
     .brand{
-      display:flex; align-items:center; gap:.75rem;
-      padding:.5rem .75rem; border-radius:.75rem;
+      display:flex; align-items:center; gap:.65rem;
+      padding:.75rem .65rem; border-radius:var(--radius);
+      margin-bottom:1rem;
+      transition:var(--transition);
+      cursor:pointer;
     }
-    .brand-title{ margin:0; font-weight:700; letter-spacing:.3px; color:var(--brand); font-size:1.05rem; }
+    .brand:hover{ background:var(--brand-50); transform:translateX(2px); }
+    .brand img{ transition:var(--transition); }
+    .brand:hover img{ transform:scale(1.05); }
+    .brand-title{ margin:0; font-weight:700; letter-spacing:.2px; color:var(--brand); font-size:1rem; }
 
-    .side-inner{ padding-bottom:1rem; }
-    .profile{ text-align:center; margin:1rem 0 1.25rem; }
-    .profile img{ width:96px; height:96px; object-fit:cover; }
-    .profile .name{ margin:.75rem 0 .25rem; font-weight:600; }
+    .side-inner{ padding-bottom:0.5rem; }
+    .profile{ 
+      text-align:center; 
+      margin:0.75rem 0 1rem; 
+      padding:0.75rem;
+      background:var(--brand-50);
+      border-radius:var(--radius);
+      transition:var(--transition);
+    }
+    .profile:hover{ background:var(--brand-100); box-shadow:0 2px 8px rgba(13,110,253,.1); }
+    .profile img{ 
+      width:80px; height:80px; 
+      object-fit:cover;
+      border:3px solid #fff;
+      box-shadow:0 2px 8px rgba(0,0,0,.1);
+      transition:var(--transition);
+    }
+    .profile:hover img{ transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,.15); }
+    .profile .name{ margin:.5rem 0 .2rem; font-weight:600; font-size:0.95rem; color:var(--text); }
+    .profile .text-muted{ font-size:0.8rem; color:var(--text-muted); }
 
+    .nav-menu{ display:flex; flex-direction:column; gap:0.25rem; }
     .nav-menu .nav-link{
-      border-radius:.6rem; color:#495057;
-      display:flex; align-items:center; gap:.6rem;
-      padding:.6rem .75rem; text-decoration:none;
+      border-radius:var(--radius);
+      color:var(--text);
+      display:flex; align-items:center; gap:.65rem;
+      padding:.7rem .75rem;
+      text-decoration:none;
+      font-size:0.9rem;
+      transition:var(--transition);
+      position:relative;
+      margin:0 0.25rem;
     }
-    .nav-menu .nav-link:hover,
-    .nav-menu .nav-link.active{
+    .nav-menu .nav-link i{
+      width:20px;
+      text-align:center;
+      transition:var(--transition);
+    }
+    .nav-menu .nav-link:hover{
       background:var(--brand-100);
       color:var(--brand);
       text-decoration:none;
       font-weight:600;
+      transform:translateX(4px);
+      box-shadow:0 2px 6px rgba(13,110,253,.15);
+    }
+    .nav-menu .nav-link:hover i{
+      transform:scale(1.15);
+      color:var(--brand);
+    }
+    .nav-menu .nav-link.active{
+      background:linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%);
+      color:#fff;
+      font-weight:600;
+      box-shadow:0 4px 12px rgba(13,110,253,.3);
+    }
+    .nav-menu .nav-link.active i{ color:#fff; }
+    .nav-menu .nav-link.active::before{
+      content:'';
+      position:absolute;
+      left:-0.75rem;
+      top:50%;
+      transform:translateY(-50%);
+      width:4px;
+      height:60%;
+      background:var(--brand);
+      border-radius:0 4px 4px 0;
     }
 
-    /* ===== Main empujado por sidebar ===== */
+    /* ===== Main mejorado con menos espacio ===== */
     .main{
       margin-left:var(--sidebar-w);
       min-height:100vh;
       display:flex; flex-direction:column;
+      transition:var(--transition);
     }
     .container-max{
-      width:100%; max-width:var(--maxw);
-      margin:0 auto; padding:0 1.25rem;
+      width:100%; 
+      max-width:var(--maxw);
+      margin:0 auto; 
+      padding:0 2rem;
     }
 
-    /* ===== Topbar ===== */
+    /* ===== Topbar mejorado ===== */
     .topbar{
       background:#fff;
       border-bottom:1px solid rgba(0,0,0,.06);
-      padding:.75rem 0;
+      padding:1rem 0;
       position:sticky; top:0; z-index:10;
+      box-shadow:0 2px 8px rgba(0,0,0,.03);
     }
+    .topbar .d-flex{ transition:var(--transition); }
+    .topbar i{ transition:var(--transition); }
+    .topbar:hover i{ transform:scale(1.1); }
 
-    /* ===== Contenido ===== */
-    .content{ padding:1.25rem 0 2rem; }
+    /* ===== Contenido mejorado ===== */
+    .content{ padding:1.5rem 0 2rem; }
     .card{
       border-radius:var(--radius);
       border:1px solid rgba(0,0,0,.06);
-      box-shadow:0 6px 16px rgba(15,23,42,.06);
+      box-shadow:0 4px 16px rgba(0,0,0,.08);
+      transition:var(--transition);
+      overflow:hidden;
     }
+    .card:hover{ box-shadow:0 8px 24px rgba(0,0,0,.12); transform:translateY(-2px); }
     .card-header{
-      background:#fff;
+      background:linear-gradient(135deg, #fff 0%, #fafbfc 100%);
       border-bottom:1px solid rgba(0,0,0,.06);
       border-top-left-radius:var(--radius);
       border-top-right-radius:var(--radius);
+      padding:1.25rem 1.75rem !important;
     }
     .section-title{
-      margin:0; font-size:1.1rem; font-weight:700; color:var(--brand); letter-spacing:.2px;
+      margin:0; font-size:1.25rem; font-weight:700; 
+      color:var(--brand); letter-spacing:.2px;
+      transition:var(--transition);
     }
+    .card:hover .section-title{ color:var(--brand-hover); }
 
-    /* ===== Tabla ===== */
+    /* ===== Tabla mejorada ===== */
     table.dataTable thead th{
-      border-bottom:1px solid rgba(0,0,0,.08);
-      white-space:nowrap; font-weight:700;
+      border-bottom:2px solid var(--brand-100);
+      white-space:nowrap; 
+      font-weight:700;
+      padding:1rem 1.5rem !important;
+      background:#fff;
+      color:var(--brand);
+      font-size:0.85rem;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+      transition:var(--transition);
     }
-    #tabla-citas tbody td{ vertical-align:middle; }
+    table.dataTable thead th:hover{
+      background:var(--brand-50);
+      color:var(--brand-hover);
+    }
+    #tabla-citas tbody tr{ 
+      transition:var(--transition);
+      border-bottom:1px solid rgba(0,0,0,.03);
+    }
+    #tabla-citas tbody tr:hover{
+      background:var(--brand-50) !important;
+      transform:scale(1.01);
+      box-shadow:0 2px 8px rgba(13,110,253,.1);
+    }
+    #tabla-citas tbody td{ 
+      vertical-align:middle;
+      padding:1.1rem 1.5rem !important;
+      font-size:0.9rem;
+    }
+    #tabla-citas { width:100% !important; }
+    .card-body { padding:1.5rem 1.75rem !important; }
+    .table-responsive { padding:0; margin:0; }
     .text-truncate{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .badge-estado{ font-weight:600; }
+    .badge-estado{ 
+      font-weight:600; 
+      padding:0.4rem 0.75rem;
+      font-size:0.8rem;
+      border-radius:6px;
+      transition:var(--transition);
+    }
+    .badge-estado:hover{ transform:scale(1.05); }
 
     .action-btn{
-      display:inline-flex; align-items:center; justify-content:center;
-      width:2.25rem; height:2.25rem; border-radius:.65rem;
+      display:inline-flex; 
+      align-items:center; 
+      justify-content:center;
+      width:2.5rem; height:2.5rem; 
+      border-radius:8px;
       border:1px solid rgba(13,110,253,.25);
+      transition:var(--transition);
+      text-decoration:none;
     }
+    .action-btn:hover{
+      transform:translateY(-2px) scale(1.1);
+      box-shadow:0 4px 12px rgba(13,110,253,.3);
+      border-color:var(--brand);
+    }
+    .action-btn i{ transition:var(--transition); }
+    .action-btn:hover i{ transform:rotate(5deg); }
 
-    .alert-dismissible .btn-close{ padding:.9rem 1rem; }
+    .alert-dismissible{ 
+      border-radius:var(--radius);
+      border:none;
+      box-shadow:0 2px 8px rgba(0,0,0,.1);
+      transition:var(--transition);
+    }
+    .alert-dismissible:hover{ box-shadow:0 4px 12px rgba(0,0,0,.15); }
 
-    /* ===== Responsive ===== */
+    /* ===== Responsive mejorado ===== */
     @media (max-width:992px){
-      :root{ --sidebar-w:240px; }
-      .sidebar{ width:var(--sidebar-w); }
-      .main{ margin-left:var(--sidebar-w); }
-      .section-title{ font-size:1.05rem; }
+      :root{ --sidebar-w:220px; }
+      .sidebar{ padding:0.75rem 0.5rem; }
+      .container-max{ padding:0 1rem; }
+      .card-body{ padding:1rem 1.25rem !important; }
     }
     @media (max-width:575.98px){
-      :root{ --sidebar-w:220px; }
-      .sidebar{ width:var(--sidebar-w); }
-      .main{ margin-left:var(--sidebar-w); }
+      :root{ --sidebar-w:200px; }
+      .container-max{ padding:0 0.75rem; }
+      .content{ padding:1rem 0 1.5rem; }
     }
   </style>
 </head>
@@ -185,7 +323,7 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
     </div>
 
     <nav class="nav-menu">
-      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='citas'?'active':''); ?>" href="../Admin/inicioAdmin.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='citas'?'active':''); ?>" href="inicioAdmin.php">
         <i class="far fa-calendar-check"></i><span>Citas pendientes</span>
       </a>
       <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='calendario'?'active':''); ?>" href="calendar.php">

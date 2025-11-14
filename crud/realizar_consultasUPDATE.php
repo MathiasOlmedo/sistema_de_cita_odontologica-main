@@ -10,7 +10,7 @@ try {
         session_start();
         $_SESSION['MensajeTexto'] = "Avertencia: Accion realilzada no permitada";
         $_SESSION['MensajeTipo'] = "is-warning";
-        header("Location: ../admin/inicioAdmin.php");
+        header("Location: ../Admin/inicioAdmin.php");
     }
 
     //CRUD - INS - DLT -- UDT
@@ -31,12 +31,12 @@ try {
             if (!$resultado) {
                 $_SESSION['MensajeTexto'] = "Error actualizando la cita ";
                 $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
-                header("Location: ../admin/inicioAdmin.php ");
+                header("Location: ../Admin/inicioAdmin.php ");
                 // die("Error en base de datos: " . mysqli_error($link));
             } else {
                 $_SESSION['MensajeTexto'] = "Cita actualizada con exito";
                 $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-info text-white";
-                header("Location: ../admin/inicioAdmin.php");
+                header("Location: ../Admin/inicioAdmin.php");
                 //die("Error en base de datos: " . mysqli_error($link));
             }
             //cerrando conexion
@@ -57,19 +57,19 @@ try {
                 if (!$resultado) {
                     $_SESSION['MensajeTexto'] = "Error borrando la cita ";
                     $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
-                    header("Location: ../admin/inicioAdmin.php ");
+                    header("Location: ../Admin/inicioAdmin.php ");
                     //die("Error en base de datos: " . mysqli_error($link));
                 } else {
                     $_SESSION['MensajeTexto'] = "Cita borrada con exito";
                     $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-info text-white";
-                    header("Location: ../admin/inicioAdmin.php");
+                    header("Location: ../Admin/inicioAdmin.php");
                     //die("Error en base de datos: " . mysqli_error($link));
                 }
             } else {
                 # code...
                 $_SESSION['MensajeTexto'] = "No se puede borrar la cita porque aun no se ha realizado";
                 $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger  text-white";
-                header("Location: ../admin/inicioAdmin.php");
+                header("Location: ../Admin/inicioAdmin.php");
                 //die("Error en base de datos: " . mysqli_error($link));
             }
 
@@ -82,7 +82,7 @@ try {
             # code...
             $_SESSION['MensajeTexto'] = "Avertencia: No se pudo identificar la accion a realizar";
             $_SESSION['MensajeTipo'] = "is-warning";
-            header("Location: ../admin/inicioAdmin.php");
+            header("Location: ../Admin/inicioAdmin.php");
             //die("Error en base de datos: ". mysqli_error($link));  //muestra en pantalla el error que se ejecuta
             break;
     }

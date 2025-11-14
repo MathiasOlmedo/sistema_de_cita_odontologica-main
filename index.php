@@ -7,17 +7,30 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Si ya hay una sesión activa, redirigir según el tipo
 if (isset($_SESSION['id_usuario']) && isset($_SESSION['tipo'])) {
+    // Establecer variables de sesión específicas si faltan
     switch ($_SESSION['tipo']) {
         case 'Paciente':
+            if (!isset($_SESSION['id_paciente'])) {
+                $_SESSION['id_paciente'] = $_SESSION['id_usuario'];
+            }
             header("Location: principal.php");
             exit();
         case 'Doctor':
-            header("Location: admin/inicioAdmin.php"); // Corregido para doctores
+            if (!isset($_SESSION['id_doctor'])) {
+                $_SESSION['id_doctor'] = $_SESSION['id_usuario'];
+            }
+            header("Location: Admin/inicioAdmin.php"); // Corregido para doctores
             exit();
         case 'Secretaria':
+            if (!isset($_SESSION['id_secretaria'])) {
+                $_SESSION['id_secretaria'] = $_SESSION['id_usuario'];
+            }
             header("Location: secretaria/presupuestos_pendientes.php");
             exit();
         case 'SuperAdmin':
+            if (!isset($_SESSION['id_admin'])) {
+                $_SESSION['id_admin'] = $_SESSION['id_usuario'];
+            }
             header("Location: superadmin_dashboard.php");
             exit();
     }
@@ -42,19 +55,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['nombre']     = $usuario['nombre'];
             $_SESSION['tipo']       = $usuario['tipo'];
 
-            // Redirección según el tipo de usuario
+            // Establecer variables de sesión específicas según el tipo de usuario
             switch ($usuario['tipo']) {
                 case 'Paciente':
+                    $_SESSION['id_paciente'] = $usuario['id'];
                     header("Location: principal.php");
                     exit();
                 case 'Doctor':
-                    header("Location: admin/inicioAdmin.php"); // Ruta correcta para doctores
+                    $_SESSION['id_doctor'] = $usuario['id'];
+                    header("Location: Admin/inicioAdmin.php"); // Ruta correcta para doctores
                     exit();
                 case 'Secretaria':
-                    // Asumiendo que hay una tabla y rol para secretaria
+                    $_SESSION['id_secretaria'] = $usuario['id'];
                     header("Location: secretaria/presupuestos_pendientes.php");
                     exit();
                 case 'SuperAdmin':
+                    $_SESSION['id_admin'] = $usuario['id'];
                     header("Location: superadmin_dashboard.php");
                     exit();
             }

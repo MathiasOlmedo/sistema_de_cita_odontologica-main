@@ -40,48 +40,151 @@ $SIDEBAR_ACTIVE = 'odontograma';
 <style>
 :root{
     --brand:#0d6efd;
+    --brand-hover:#0b5ed7;
     --brand-100:#e7f1ff;
-    --surface:#f8f9fa;
+    --brand-50:#f0f7ff;
+    --surface:#f5f7fa;
     --text:#212529;
-    --sidebar-w:260px;
-    --maxw:1200px;
-    --radius:12px;
+    --text-muted:#6c757d;
+    --sidebar-w:240px;
+    --maxw:1600px;
+    --radius:10px;
+    --transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+*{ box-sizing:border-box; margin:0; padding:0; }
 body {
-    margin:0; background:var(--surface); color:var(--text);
-    font-family: Arial, sans-serif;
+    margin:0; 
+    background:var(--surface); 
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
 }
 
-/* ===== Sidebar ===== */
+/* ===== Sidebar mejorado ===== */
 .sidebar{
-    background:#fff;
-    border-right:0 !important;
+    background:linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    border-right:1px solid rgba(0,0,0,.05);
+    box-shadow:2px 0 12px rgba(0,0,0,.03);
     position:fixed; top:0; left:0;
     width:var(--sidebar-w); height:100vh;
-    padding:1.25rem 1rem;
-    overflow-y:hidden; overflow-x:hidden;
+    padding:1rem 0.75rem;
+    overflow-y:auto;
+    overflow-x:hidden;
+    z-index:1030;
+    transition:var(--transition);
 }
-.brand{ display:flex; align-items:center; gap:.75rem; padding:.5rem .75rem; border-radius:.75rem; }
-.brand-title{ margin:0; font-weight:700; letter-spacing:.3px; color:var(--brand); font-size:1.05rem; }
+.sidebar::-webkit-scrollbar{ width:4px; }
+.sidebar::-webkit-scrollbar-track{ background:transparent; }
+.sidebar::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.1); border-radius:2px; }
+.sidebar::-webkit-scrollbar-thumb:hover{ background:rgba(0,0,0,.2); }
 
-.profile{ text-align:center; margin:1rem 0 1.25rem; }
-.profile img{ width:96px; height:96px; object-fit:cover; }
-.profile .name{ margin:.75rem 0 .25rem; font-weight:600; }
+.brand{ 
+    display:flex; align-items:center; gap:.65rem; 
+    padding:.75rem .65rem; border-radius:var(--radius);
+    margin-bottom:1rem;
+    transition:var(--transition);
+    cursor:pointer;
+}
+.brand:hover{ background:var(--brand-50); transform:translateX(2px); }
+.brand img{ transition:var(--transition); }
+.brand:hover img{ transform:scale(1.05); }
+.brand-title{ margin:0; font-weight:700; letter-spacing:.2px; color:var(--brand); font-size:1rem; }
 
+.profile{ 
+    text-align:center; 
+    margin:0.75rem 0 1rem;
+    padding:0.75rem;
+    background:var(--brand-50);
+    border-radius:var(--radius);
+    transition:var(--transition);
+}
+.profile:hover{ background:var(--brand-100); box-shadow:0 2px 8px rgba(13,110,253,.1); }
+.profile img{ 
+    width:80px; height:80px; 
+    object-fit:cover;
+    border:3px solid #fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
+    transition:var(--transition);
+}
+.profile:hover img{ transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,.15); }
+.profile .name{ margin:.5rem 0 .2rem; font-weight:600; font-size:0.95rem; }
+
+.nav-menu{ display:flex; flex-direction:column; gap:0.25rem; }
 .nav-menu .nav-link{
-    border-radius:.6rem; color:#495057;
-    display:flex; align-items:center; gap:.6rem;
-    padding:.6rem .75rem; text-decoration:none;
+    border-radius:var(--radius);
+    color:var(--text);
+    display:flex; align-items:center; gap:.65rem;
+    padding:.7rem .75rem;
+    text-decoration:none;
+    font-size:0.9rem;
+    transition:var(--transition);
+    position:relative;
+    margin:0 0.25rem;
 }
-.nav-menu .nav-link:hover,
-.nav-menu .nav-link.active{
+.nav-menu .nav-link i{
+    width:20px;
+    text-align:center;
+    transition:var(--transition);
+}
+.nav-menu .nav-link:hover{
     background:var(--brand-100);
     color:var(--brand);
-    text-decoration:none; font-weight:600;
+    text-decoration:none;
+    font-weight:600;
+    transform:translateX(4px);
+    box-shadow:0 2px 6px rgba(13,110,253,.15);
+}
+.nav-menu .nav-link:hover i{
+    transform:scale(1.15);
+    color:var(--brand);
+}
+.nav-menu .nav-link.active{
+    background:linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%);
+    color:#fff;
+    font-weight:600;
+    box-shadow:0 4px 12px rgba(13,110,253,.3);
+}
+.nav-menu .nav-link.active i{ color:#fff; }
+.nav-menu .nav-link.active::before{
+    content:'';
+    position:absolute;
+    left:-0.75rem;
+    top:50%;
+    transform:translateY(-50%);
+    width:4px;
+    height:60%;
+    background:var(--brand);
+    border-radius:0 4px 4px 0;
 }
 
-/* ===== Main ===== */
-.main{ margin-left:var(--sidebar-w); min-height:100vh; display:flex; flex-direction:column; padding:1.25rem; }
+/* ===== Main mejorado ===== */
+.main{ 
+    margin-left:var(--sidebar-w); 
+    min-height:100vh; 
+    display:flex; 
+    flex-direction:column; 
+    padding:2rem;
+    transition:var(--transition);
+}
+.main .container,
+.main .card,
+.main .table-responsive{
+    max-width:var(--maxw);
+    margin:0 auto;
+    width:100%;
+}
+.main .card{
+    border-radius:var(--radius);
+    border:1px solid rgba(0,0,0,.06);
+    box-shadow:0 4px 16px rgba(0,0,0,.08);
+    transition:var(--transition);
+    overflow:hidden;
+}
+.main .card:hover{
+    box-shadow:0 8px 24px rgba(0,0,0,.12);
+    transform:translateY(-2px);
+}
 
 /* Odontograma */
 #odontograma {
@@ -103,6 +206,17 @@ body {
 /* Tabla procedimientos */
 #tablaProcedimientos th, #tablaProcedimientos td { text-align:center; }
 #pacientesTable tbody tr td .btn { white-space: nowrap; }
+
+/* Responsive mejorado */
+@media (max-width:992px){
+    :root{ --sidebar-w:220px; }
+    .sidebar{ padding:0.75rem 0.5rem; }
+    .main{ padding:1.5rem 1rem; }
+}
+@media (max-width:575.98px){
+    :root{ --sidebar-w:200px; }
+    .main{ padding:1rem 0.75rem; }
+}
 </style>
 </head>
 
@@ -124,11 +238,11 @@ body {
     </div>
 
     <nav class="nav-menu">
-        <a href="admin/inicioAdmin.php" class="nav-link"><i class="far fa-calendar-check"></i> Citas pendientes</a>
-        <a href="admin/calendar.php" class="nav-link"><i class="far fa-calendar-alt"></i> Calendario</a>
+        <a href="Admin/inicioAdmin.php" class="nav-link"><i class="far fa-calendar-check"></i> Citas pendientes</a>
+        <a href="Admin/calendar.php" class="nav-link"><i class="far fa-calendar-alt"></i> Calendario</a>
         <a href="odontograma.php" class="nav-link active"><i class="fas fa-tooth"></i> Odontograma</a>
         <a href="Admin/presupuestos_doctor.php" class="nav-link"><i class="fas fa-file-invoice-dollar"></i> Presupuestos</a>
-        <a href="reportes_doctor.php" class="nav-link"><i class="fas fa-chart-line"></i> Reportes</a>
+        <a href="Admin/reportes_doctor.php" class="nav-link"><i class="fas fa-chart-line"></i> Reportes</a>
         <a href="php/cerrar.php" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
     </nav>
 </aside>
