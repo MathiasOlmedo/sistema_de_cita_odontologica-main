@@ -30,6 +30,13 @@ try {
                 $query = "INSERT INTO `pacientes` (`nombre`, `apellido`, `cedula`, `telefono`, `sexo`, `fecha_nacimiento`, `correo_electronico`, `clave`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                 
                 $stmt = mysqli_prepare($link, $query);
+                if ($stmt === false) {
+                    error_log("Error in mysqli_prepare for registration: " . mysqli_error($link));
+                    $_SESSION['MensajeTexto'] = "Error al preparar la consulta. Intente de nuevo.";
+                    $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
+                    header("Location: ../index.php");
+                    exit();
+                }
                 mysqli_stmt_bind_param($stmt, "ssssssss", $nombre, $apellido, $cedula, $telefono, $sexo, $fecha, $correo, $clave_hasheada);
                 $resultado = mysqli_stmt_execute($stmt);
 
@@ -61,6 +68,13 @@ try {
                 $query = "INSERT INTO `doctor` (`nombreD`, `apellido`, `sexo`, `fecha_nacimiento`, `telefono`, `correo_eletronico`, `clave`, `id_especialidad`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                 
                 $stmt = mysqli_prepare($link, $query);
+                if ($stmt === false) {
+                    error_log("Error in mysqli_prepare for doctor registration: " . mysqli_error($link));
+                    $_SESSION['MensajeTexto'] = "Error al preparar la consulta para registrar el doctor.";
+                    $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
+                    header("Location: ../admin/doctores.php");
+                    exit();
+                }
                 // Asumiendo que id_especialidad es un entero (i)
                 mysqli_stmt_bind_param($stmt, "sssssssi", $nombre, $apellido, $sexo, $fecha, $telefono, $correo, $clave_hasheada, $especialidad);
                 $resultado = mysqli_stmt_execute($stmt);

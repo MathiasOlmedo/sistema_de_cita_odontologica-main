@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Perfect Teeth - Iniciar Sesión</title>
 
     <!-- ICONO -->
@@ -85,12 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
     <div class="container login-container">
-        <div class="row">
-            <div class="col-md-6 ads">
+        <div class="row justify-content-center">
+            <div class="col-md-6 ads d-none d-md-block">
                 <h1><span id="fl">Perfect</span><span id="sl">Teeth</span></h1>
             </div>
 
-            <div class="col-md-6 login-form">
+            <div class="col-12 col-md-6 login-form">
                 <div class="profile-img">
                     <img src="src/img/logo.png" alt="profile_img" height="120px" width="120px">
                 </div>

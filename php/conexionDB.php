@@ -9,9 +9,12 @@ if (session_status() == PHP_SESSION_NONE) {
 //creando objeto de conexion a base de datos
 $link = new mysqli(host, user, password, database);
 
-if ($link->connect_errno) { // Corregido: Usar $link->connect_errno en lugar de mysqli_connect_errno()
-    $_SESSION['MensajeTexto'] = "El sistema está en mantenimiento, intente más tarde";
-    $_SESSION['MensajeTipo'] = "bg-warning text-dark";
+if ($link->connect_errno) {
+    error_log("Database connection error: (" . $link->connect_errno . ") " . $link->connect_error);
+    // Redirect to a generic error page without exposing details.
+    // Using an absolute path from the web root is most reliable.
+    header("Location: /app/error.php");
+    exit();
 } else {
     $link->set_charset('utf8'); // Corregido: Usar $link en lugar de $conn
 }
