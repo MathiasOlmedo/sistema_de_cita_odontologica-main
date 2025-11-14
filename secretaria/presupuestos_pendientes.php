@@ -3,11 +3,15 @@ include_once __DIR__ . '/../php/conexionDB.php';
 include_once __DIR__ . '/../php/configuracion.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-// Validar sesión secretaria/admin/doctor
-if (!isset($_SESSION['id_secretaria']) && !isset($_SESSION['id_admin']) && !isset($_SESSION['id_doctor'])) {
+// Estandarizar control de acceso
+if (
+  empty($_SESSION['id_usuario']) ||
+  ($_SESSION['tipo'] ?? '') !== 'Secretaria'
+) {
   header('Location: ../index.php');
   exit;
 }
+$usuario = $_SESSION['nombre'] ?? 'Secretaría';
 
 /** URL absoluta respetando subcarpeta del proyecto */
 function abs_url_from_path($relPath) {
@@ -27,7 +31,7 @@ function normalize_tel_for_wa($tel, $default_cc = '595') {
   return $default_cc . $digits;
 }
 
-// Filtros
+// Filtros (ya eran seguros)
 $q = trim($_GET['q'] ?? '');
 $estado = trim($_GET['estado'] ?? 'pendiente');
 $desde = trim($_GET['desde'] ?? '');
@@ -83,43 +87,39 @@ $estados = ['pendiente'=>'Pendiente', 'enviado'=>'Enviado', 'aprobado'=>'Aprobad
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Perfect Teeth — Presupuestos Pendientes</title>
+<title>Perfect Teeth — Presupuestos</title>
 <link rel="icon" href="../src/img/logo.png" type="image/png" />
-<link rel="stylesheet" href="../src/css/lib/bootstrap/css/bootstrap.min.css">
-<link rel="stylesheet" href="../src/css/lib/fontawesome/css/all.min.css">
-<script src="../src/js/jquery.js"></script>
-<script src="../src/css/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <style>
 :root{
   --brand:#0d6efd; --brand-100:#e7f1ff;
   --surface:#f8f9fa; --text:#212529;
-  --sidebar-w:260px; --maxw:1200px; --radius:12px;
+  --sidebar-w:260px; --radius:12px;
 }
-body{margin:0; background:var(--surface); color:var(--text); font-family:Arial, sans-serif;}
+body{margin:0;background:var(--surface);color:var(--text);}
 .sidebar{
-  position:fixed; top:0; left:0;
-  width:var(--sidebar-w); height:100vh;
-  background:#fff; border-right:0 !important;
-  padding:1.25rem 1rem; box-shadow:none;
-  overflow:hidden; z-index:1030;
+  position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+  background:#fff;padding:1.25rem 1rem;border-right:1px solid rgba(0,0,0,.08);box-shadow:0 6px 16px rgba(15,23,42,.04);z-index:1030;
 }
-.brand{display:flex; align-items:center; gap:.75rem; padding:.5rem .75rem;}
-.brand-title{margin:0; font-weight:700; color:var(--brand);}
-.profile{text-align:center; margin:1rem 0;}
-.profile img{width:96px; height:96px; border-radius:50%; object-fit:cover;}
-.profile .name{font-weight:600; margin-top:.5rem;}
-.nav-menu{display:flex; flex-direction:column; gap:.25rem;}
+.brand{display:flex;align-items:center;gap:.75rem;}
+.brand-title{margin:0;font-weight:700;color:var(--brand);}
+.profile{text-align:center;margin:1rem 0;}
+.profile img{width:96px;height:96px;object-fit:cover;}
+.nav-menu{display:flex;flex-direction:column;gap:.25rem;}
 .nav-menu .nav-link{
-  display:flex; align-items:center; gap:.6rem;
-  padding:.6rem .75rem; border-radius:.6rem;
-  color:#495057; text-decoration:none;
+  display:flex;align-items:center;gap:.6rem;
+  border-radius:.6rem;padding:.6rem .75rem;color:#495057;text-decoration:none;
 }
-.nav-menu .nav-link:hover,
-.nav-menu .nav-link.active{background:var(--brand-100); color:var(--brand); font-weight:600;}
-.main{margin-left:var(--sidebar-w); min-height:100vh; padding:1.5rem;}
-.topbar{background:#fff; border-bottom:1px solid rgba(0,0,0,.06); padding:.75rem 1rem; position:sticky; top:0; z-index:10;}
-.badge-capital{text-transform:capitalize;}
+.nav-menu .nav-link:hover,.nav-menu .nav-link.active{
+  background:var(--brand-100);color:var(--brand);font-weight:600;
+}
+.main{margin-left:var(--sidebar-w);min-height:100vh;padding:1.5rem;}
+.topbar{
+  background:#fff;border-radius:var(--radius);border:1px solid rgba(0,0,0,.06);
+  padding:.75rem 1rem;position:sticky;top:0;z-index:10;
+}
 </style>
 </head>
 
@@ -132,25 +132,26 @@ body{margin:0; background:var(--surface); color:var(--text); font-family:Arial, 
     <h1 class="brand-title">Perfect Teeth</h1>
   </div>
   <div class="profile">
-    <img src="../src/img/secretaria.png" alt="Secretaria">
-    <div class="name">Secretaría</div>
-    <div class="small text-muted">Panel de control</div>
+    <img src="../src/img/secretaria.png" class="rounded-circle border" alt="Perfil">
+    <div class="name"><?= htmlspecialchars($usuario) ?></div>
+    <div class="small text-muted">Panel Secretaría</div>
   </div>
   <nav class="nav-menu">
-    <a class="nav-link" href="gestionar_pacientes.php"><i class="fa-solid fa-users"></i> Pacientes</a>
-    <a class="nav-link" href="pagos.php"><i class="fa-solid fa-cash-register"></i> Pagos</a>
-    <a class="nav-link" href="gestionar_citas.php"><i class="fa-solid fa-calendar-days"></i> Citas</a>
-    <a class="nav-link active" href="presupuestos_pendientes.php"><i class="fa-solid fa-clock"></i> Presupuestos pendientes</a>
-    <a class="nav-link" href="perfil_secretaria.php"><i class="fa-solid fa-user-gear"></i> Perfil</a>
-    <a class="nav-link text-danger" href="../php/cerrar.php"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</a>
+    <a href="gestionar_pacientes.php" class="nav-link"><i class="bi bi-people"></i> Pacientes</a>
+    <a href="../gestionar_dentistas.php" class="nav-link"><i class="bi bi-person-badge"></i> Dentistas</a>
+    <a href="pagos.php" class="nav-link"><i class="bi bi-cash-stack"></i> Pagos</a>
+    <a href="gestionar_citas.php" class="nav-link"><i class="bi bi-calendar-check"></i> Citas</a>
+    <a href="presupuestos_pendientes.php" class="nav-link active"><i class="bi bi-clock-history"></i> Presupuestos</a>
+    <a href="#" class="nav-link"><i class="bi bi-person-gear"></i> Perfil</a>
+    <a href="../php/cerrar.php" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
   </nav>
 </aside>
 
 <!-- Main -->
 <div class="main">
   <div class="topbar d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0 text-primary"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Presupuestos Pendientes</h4>
-    <small class="text-muted">Gestión de presupuestos</small>
+    <h4 class="mb-0 text-primary"><i class="bi bi-file-earmark-text me-2"></i>Gestión de Presupuestos</h4>
+    <small class="text-muted">Administración de presupuestos y envíos</small>
   </div>
 
   <form class="card mb-3" method="get">
@@ -162,7 +163,7 @@ body{margin:0; background:var(--surface); color:var(--text); font-family:Arial, 
         </div>
         <div class="col-md-3">
           <label class="form-label">Estado</label>
-          <select name="estado" class="form-control">
+          <select name="estado" class="form-select">
             <option value="">Todos</option>
             <?php foreach($estados as $k=>$v): ?>
               <option value="<?= $k ?>" <?= $estado===$k?'selected':'' ?>><?= $v ?></option>
@@ -178,7 +179,7 @@ body{margin:0; background:var(--surface); color:var(--text); font-family:Arial, 
           <input type="date" name="hasta" class="form-control" value="<?= htmlspecialchars($hasta) ?>">
         </div>
         <div class="col-md-1 d-flex align-items-end">
-          <button class="btn btn-primary w-100"><i class="fa-solid fa-filter"></i></button>
+          <button class="btn btn-primary w-100"><i class="bi bi-filter"></i></button>
         </div>
       </div>
     </div>
@@ -204,27 +205,21 @@ body{margin:0; background:var(--surface); color:var(--text); font-family:Arial, 
               $pdf_abs  = $row['pdf_path'] ? abs_url_from_path($row['pdf_path']) : '';
               $telRaw   = (string)$row['tel_efectivo'];
               $wa_number = normalize_tel_for_wa($telRaw, '595');
-              // Obtener detalles del presupuesto (dientes y tratamientos)
-$detalles = [];
-$detQuery = $link->prepare("SELECT diente, procedimiento, precio FROM presupuesto_detalle WHERE id_presupuesto = ?");
-$detQuery->bind_param("i", $row['id_presupuesto']);
-$detQuery->execute();
-$detRes = $detQuery->get_result();
-while ($det = $detRes->fetch_assoc()) {
-  $detalles[] = "🦷 Diente {$det['diente']} — {$det['procedimiento']} ($" . number_format((float)$det['precio'], 0, ',', '.') . ")";
-}
-$detQuery->close();
-
-$detalleTexto = !empty($detalles) ? implode("\n", $detalles) : "Sin detalles registrados.";
-
-// Mensaje más completo y claro
-$msg = "Hola {$row['paciente_nombre']}, su presupuesto total es de $" . number_format((float)$row['total'], 0, ',', '.') . ".\n\n" .
-       "📋 Detalles:\n{$detalleTexto}\n\n" .
-       "Si desea recibir este presupuesto por correo electrónico, por favor responda este mensaje con su dirección de correo.\n" .
-       ($pdf_abs ? "\n Muchas Gracias aguardo su respuesta" : "");
-
+              $detalles = [];
+              $detQuery = $link->prepare("SELECT diente, procedimiento, precio FROM presupuesto_detalle WHERE id_presupuesto = ?");
+              $detQuery->bind_param("i", $row['id_presupuesto']);
+              $detQuery->execute();
+              $detRes = $detQuery->get_result();
+              while ($det = $detRes->fetch_assoc()) {
+                $detalles[] = "🦷 Diente {$det['diente']} — {$det['procedimiento']} ($" . number_format((float)$det['precio'], 0, ',', '.') . ")";
+              }
+              $detQuery->close();
+              $detalleTexto = !empty($detalles) ? implode("\n", $detalles) : "Sin detalles registrados.";
+              $msg = "Hola {$row['paciente_nombre']}, su presupuesto total es de $" . number_format((float)$row['total'], 0, ',', '.') . ".\n\n" .
+                     "📋 Detalles:\n{$detalleTexto}\n\n" .
+                     "Si desea recibir este presupuesto por correo electrónico, por favor responda este mensaje con su dirección de correo.\n" .
+                     ($pdf_abs ? "\n Muchas Gracias aguardo su respuesta" : "");
               $wa_web = ($wa_number ? ('https://wa.me/'.$wa_number.'?text='.rawurlencode($msg)) : '');
-              $estado_badge = $row['estado']==='enviado'?'success':($row['estado']==='aprobado'?'primary':($row['estado']==='rechazado'?'danger':'secondary'));
             ?>
             <tr id="row-<?= (int)$row['id_presupuesto'] ?>">
               <td><?= htmlspecialchars($row['folio']) ?></td>
@@ -232,41 +227,40 @@ $msg = "Hola {$row['paciente_nombre']}, su presupuesto total es de $" . number_f
               <td>
                 <?= htmlspecialchars($row['paciente_nombre']) ?><br>
                 <?php if($pdf_abs): ?>
-                  <a href="<?= htmlspecialchars($pdf_abs) ?>" target="_blank" class="small"><i class="fa-regular fa-file-pdf"></i> PDF</a>
+                  <a href="<?= htmlspecialchars($pdf_abs) ?>" target="_blank" class="small"><i class="bi bi-file-earmark-pdf"></i> Ver PDF</a>
                 <?php endif; ?>
               </td>
               <td><?= htmlspecialchars($row['tel_efectivo']) ?></td>
               <td class="text-end">$ <?= number_format((float)$row['total'],2) ?></td>
               <td>
-  <select class="form-select form-select-sm estado-select" 
-          data-id="<?= (int)$row['id_presupuesto'] ?>">
-    <option value="pendiente" <?= $row['estado']==='pendiente'?'selected':'' ?>>Pendiente</option>
-    <option value="enviado" <?= $row['estado']==='enviado'?'selected':'' ?>>Enviado</option>
-    <option value="aprobado" <?= $row['estado']==='aprobado'?'selected':'' ?>>Aprobado</option>
-    <option value="rechazado" <?= $row['estado']==='rechazado'?'selected':'' ?>>Rechazado</option>
-  </select>
-  <?php if($row['enviado_at']): ?>
-    <div class="small text-muted"><?= date('d/m/Y H:i', strtotime($row['enviado_at'])) ?></div>
-  <?php endif; ?>
-</td>
-
+                <select class="form-select form-select-sm estado-select" data-id="<?= (int)$row['id_presupuesto'] ?>">
+                  <option value="pendiente" <?= $row['estado']==='pendiente'?'selected':'' ?>>Pendiente</option>
+                  <option value="enviado" <?= $row['estado']==='enviado'?'selected':'' ?>>Enviado</option>
+                  <option value="aprobado" <?= $row['estado']==='aprobado'?'selected':'' ?>>Aprobado</option>
+                  <option value="rechazado" <?= $row['estado']==='rechazado'?'selected':'' ?>>Rechazado</option>
+                </select>
+                <?php if($row['enviado_at']): ?>
+                  <div class="small text-muted" title="Enviado a <?= htmlspecialchars($row['enviado_a']) ?> vía <?= htmlspecialchars($row['enviado_via']) ?>">
+                    <?= date('d/m/Y H:i', strtotime($row['enviado_at'])) ?>
+                  </div>
+                <?php endif; ?>
+              </td>
               <td>
                 <?php if($wa_web): ?>
-                  <a class="btn btn-sm btn-success" href="<?= htmlspecialchars($wa_web) ?>" target="_blank"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+                  <a class="btn btn-sm btn-success" href="<?= htmlspecialchars($wa_web) ?>" target="_blank"><i class="bi bi-whatsapp"></i> WhatsApp</a>
                 <?php else: ?>
                   <button class="btn btn-sm btn-secondary" disabled>Sin teléfono</button>
                 <?php endif; ?>
                 <button class="btn btn-sm btn-outline-primary btnMarcarEnviado"
-  data-id="<?= htmlspecialchars($row['id_presupuesto'] ?? '') ?>"
-  data-tel="<?= htmlspecialchars($wa_number) ?>">
-  Marcar enviado
-</button>
-
+                  data-id="<?= htmlspecialchars($row['id_presupuesto'] ?? '') ?>"
+                  data-tel="<?= htmlspecialchars($wa_number) ?>">
+                  Marcar enviado
+                </button>
               </td>
             </tr>
             <?php endforeach; ?>
             <?php if(empty($rows)): ?>
-              <tr><td colspan="7" class="text-center text-muted">Sin resultados</td></tr>
+              <tr><td colspan="7" class="text-center text-muted p-4">No se encontraron presupuestos.</td></tr>
             <?php endif; ?>
           </tbody>
         </table>
@@ -275,6 +269,7 @@ $msg = "Hola {$row['paciente_nombre']}, su presupuesto total es de $" . number_f
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 $(function(){
   $('.btnMarcarEnviado').on('click', function(){
@@ -289,8 +284,8 @@ $(function(){
         try {
           const r = JSON.parse(res);
           if (r.status === 'ok') {
-            const $row = $('#row-'+id);
-            $row.find('td:eq(5)').html('<span class="badge bg-success">enviado</span><div class="small text-muted">actualizado</div>');
+            alert('✅ Estado actualizado a "Enviado".');
+            location.reload();
           } else alert(r.message || 'Error al actualizar.');
         } catch(e){ alert('Respuesta inesperada.'); }
       },
@@ -298,12 +293,9 @@ $(function(){
     });
   });
 
-  // --- Cambiar estado manualmente ---
-$(function(){
   $('.estado-select').on('change', function(){
     const id = $(this).data('id');
     const estado = $(this).val();
-
     $.ajax({
       url: '../php/presupuesto_estado.php',
       method: 'POST',
@@ -323,8 +315,6 @@ $(function(){
       error: ()=> alert('Error de conexión.')
     });
   });
-});
-
 });
 </script>
 

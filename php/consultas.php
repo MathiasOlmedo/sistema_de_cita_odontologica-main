@@ -1,67 +1,85 @@
 <?php
-// Función para validar login de Paciente o Doctor
-function validarLogin($link, $user, $pass)
+
+/**
+ * Valida las credenciales de un usuario (Paciente, Doctor o Superadmin) de forma segura.
+ *
+ * @param mysqli $link Conexión a la base de datos.
+ * @param string $email El correo electrónico del usuario.
+ * @param string $pass La contraseña en texto plano.
+ * @return array|false Un array con los datos del usuario si es válido, o false si no lo es.
+ */
+function validarLogin($link, $email, $pass)
 {
-    // Primero intentamos con Superadmin
-    $querySuperadmin = "SELECT * FROM `superadmin` WHERE `correo_electronico` = '$user' AND `clave` = '$pass'";
-    $resultadoSuperadmin = mysqli_query($link, $querySuperadmin);
+    // Unificamos la búsqueda en las tres tablas para encontrar al usuario por su email
+    // Usamos consultas preparadas para máxima seguridad.
+    
+    $user_data = null;
+    $found_in = '';
 
-    if (mysqli_num_rows($resultadoSuperadmin) == 1) {
-        $row = mysqli_fetch_assoc($resultadoSuperadmin);
-        $_SESSION['id_superadmin'] = $row['id_superadmin']; // Guardamos el id del superadmin en la sesión
-
-        $_SESSION['MensajeTexto'] = null;
-        $_SESSION['MensajeTipo'] = null;
-
-        // Redirigir al superadmin
-        header("Location: /sistema_de_cita_odontologica-main/superadmin_dashboard.php");
-        exit();
-    } else {
-        // Intentamos con Paciente
-        $queryPaciente = "SELECT * FROM `pacientes` WHERE `correo_electronico` = '$user' AND `clave` = '$pass'";
-        $resultadoPaciente = mysqli_query($link, $queryPaciente);
-
-        if (mysqli_num_rows($resultadoPaciente) == 1) {
-            $row = mysqli_fetch_assoc($resultadoPaciente);
-            $_SESSION['id_paciente'] = $row['id_paciente'];
-
-            $_SESSION['MensajeTexto'] = null;
-            $_SESSION['MensajeTipo'] = null;
-
-            header("Location: /sistema_de_cita_odontologica-main/principal.php");
-            exit();
-        } else {
-            // Intentamos con Doctor
-            $queryDoctor = "SELECT * FROM `doctor` WHERE `correo_eletronico` = '$user' AND `clave` = '$pass'";
-            $resultadoDoctor = mysqli_query($link, $queryDoctor);
-
-            if (mysqli_num_rows($resultadoDoctor) == 1) {
-                $row = mysqli_fetch_assoc($resultadoDoctor);
-                $_SESSION['id_doctor'] = $row['id_doctor'];
-
-                $_SESSION['MensajeTexto'] = null;
-                $_SESSION['MensajeTipo'] = null;
-
-                header("Location: /sistema_de_cita_odontologica-main/admin/inicioAdmin.php");
-                exit();
-            } else {
-                // Si no es paciente ni doctor ni superadmin
-                $_SESSION['MensajeTexto'] = "Usuario o contraseña incorrectos";
-                $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
-            }
-        }
+    // 1. Buscar en Pacientes
+    $stmt = $link->prepare("SELECT id_paciente as id, nombre, clave, 'Paciente' as tipo FROM `pacientes` WHERE `correo_electronico` = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows === 1) {
+        $user_data = $result->fetch_assoc();
+        $found_in = 'pacientes';
     }
+    $stmt->close();
+
+    // 2. Si no se encontró, buscar en Doctores
+    if (!$user_data) {
+        $stmt = $link->prepare("SELECT id_doctor as id, nombreD as nombre, clave, 'Doctor' as tipo FROM `doctor` WHERE `correo_eletronico` = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows === 1) {
+            $user_data = $result->fetch_assoc();
+            $found_in = 'doctor';
+        }
+        $stmt->close();
+    }
+    
+    // 3. Si no se encontró, buscar en Superadmin
+    if (!$user_data) {
+        $stmt = $link->prepare("SELECT id_superadmin as id, nombre, clave, 'SuperAdmin' as tipo FROM `superadmin` WHERE `correo_electronico` = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows === 1) {
+            $user_data = $result->fetch_assoc();
+            $found_in = 'superadmin';
+        }
+        $stmt->close();
+    }
+
+    // 4. Verificar la contraseña
+    if ($user_data && password_verify($pass, $user_data['clave'])) {
+        // La contraseña es correcta, devolvemos los datos del usuario.
+        return [
+            'id' => $user_data['id'],
+            'nombre' => $user_data['nombre'],
+            'tipo' => $user_data['tipo']
+        ];
+    }
+
+    // Si el usuario no existe o la contraseña es incorrecta
+    return false;
 }
 
-// Función para consultar datos de un paciente
+
+// --- OTRAS FUNCIONES REFACTORIZADAS ---
+
 function consultarPaciente($link, $id)
 {
-    $query = "SELECT * FROM `pacientes` WHERE `id_paciente` = '$id'";
-    $resultado = mysqli_query($link, $query);
+    $stmt = $link->prepare("SELECT * FROM `pacientes` WHERE `id_paciente` = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+    $stmt->close();
 
-    if (mysqli_num_rows($resultado) == 1) {
-        $row = mysqli_fetch_assoc($resultado);
-        return $row;
+    if ($resultado->num_rows == 1) {
+        return $resultado->fetch_assoc();
     } else {
         $_SESSION['MensajeTexto'] = "Error validando datos del paciente";
         $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
@@ -70,15 +88,16 @@ function consultarPaciente($link, $id)
     }
 }
 
-// Función para consultar datos de un doctor
 function consultarDoctor($link, $id)
 {
-    $query = "SELECT * FROM `doctor` WHERE `id_doctor` = '$id'";
-    $resultado = mysqli_query($link, $query);
+    $stmt = $link->prepare("SELECT * FROM `doctor` WHERE `id_doctor` = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+    $stmt->close();
 
-    if (mysqli_num_rows($resultado) == 1) {
-        $row = mysqli_fetch_assoc($resultado);
-        return $row;
+    if ($resultado->num_rows == 1) {
+        return $resultado->fetch_assoc();
     } else {
         $_SESSION['MensajeTexto'] = "Error validando datos del doctor";
         $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
@@ -87,7 +106,6 @@ function consultarDoctor($link, $id)
     }
 }
 
-// Funciones para mostrar datos de la base
 function MostrarConsultas($link)
 {
     $query = "SELECT * FROM `consultas`";
@@ -115,36 +133,32 @@ function MostrarPacientes($link)
 function MostrarCitas($link, $id)
 {
     $query = "
-        SELECT  
-            c.id_cita,
-            p.nombre,
-            p.apellido,
-            d.nombreD,
-            p.fecha_nacimiento,
-            c.fecha_cita,
-            c.hora_cita,
-            con.tipo, 
-            c.estado,
-            YEAR(CURDATE()) - YEAR(p.fecha_nacimiento) AS años,
-            pd.descripcion
-        FROM 
-            `citas` AS c
+        SELECT c.id_cita, p.nombre, p.apellido, d.nombreD, p.fecha_nacimiento, c.fecha_cita, c.hora_cita, con.tipo, c.estado, YEAR(CURDATE()) - YEAR(p.fecha_nacimiento) AS años, pd.descripcion
+        FROM `citas` AS c
         LEFT JOIN `pacientes` AS p ON p.id_paciente = c.id_paciente
         LEFT JOIN `doctor` AS d ON d.id_doctor = c.id_doctor
         LEFT JOIN `consultas` AS con ON con.id_consultas = c.id_consultas
         LEFT JOIN `paciente_diagnostico` AS pd ON pd.id_cita = c.id_cita
-        WHERE d.id_doctor = $id;
-    ";
-    return mysqli_query($link, $query);
+        WHERE d.id_doctor = ?";
+    
+    $stmt = $link->prepare($query);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+    $stmt->close();
+    return $resultado;
 }
 
 function ConsultarCitas($link, $id)
 {
-    $query = "SELECT * FROM `citas` WHERE `id_cita` = '$id'";
-    $resultado = mysqli_query($link, $query);
+    $stmt = $link->prepare("SELECT * FROM `citas` WHERE `id_cita` = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+    $stmt->close();
 
-    if (mysqli_num_rows($resultado) == 1) {
-        return mysqli_fetch_assoc($resultado);
+    if ($resultado->num_rows == 1) {
+        return $resultado->fetch_assoc();
     } else {
         $_SESSION['MensajeTexto'] = "Error consultando cita";
         $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
@@ -155,53 +169,38 @@ function ConsultarCitas($link, $id)
 function CitasPendientesFPDF($link, $id)
 {
     $query = "
-        SELECT  
-            c.id_cita,
-            c.estado,
-            p.nombre,
-            p.apellido,
-            d.nombreD,
-            p.fecha_nacimiento,
-            c.fecha_cita,
-            c.hora_cita,
-            con.tipo, 
-            pd.descripcion,
-            YEAR(CURDATE()) - YEAR(p.fecha_nacimiento) AS años
-        FROM 
-            `citas` AS c
+        SELECT c.id_cita, c.estado, p.nombre, p.apellido, d.nombreD, p.fecha_nacimiento, c.fecha_cita, c.hora_cita, con.tipo, pd.descripcion, YEAR(CURDATE()) - YEAR(p.fecha_nacimiento) AS años
+        FROM `citas` AS c
         LEFT JOIN `pacientes` AS p ON p.id_paciente = c.id_paciente
         LEFT JOIN `doctor` AS d ON d.id_doctor = c.id_doctor
         LEFT JOIN `consultas` AS con ON con.id_consultas = c.id_consultas
         LEFT JOIN `paciente_diagnostico` AS pd ON pd.id_cita = c.id_cita
-        WHERE c.estado = 'I' AND p.id_paciente = $id;
-    ";
-    return mysqli_query($link, $query);
+        WHERE c.estado = 'I' AND p.id_paciente = ?";
+    
+    $stmt = $link->prepare($query);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+    $stmt->close();
+    return $resultado;
 }
 
 function CitasRealizadasFPDF($link, $id)
 {
     $query = "
-        SELECT  
-            c.id_cita,
-            c.estado,
-            p.nombre,
-            p.apellido,
-            d.nombreD,
-            p.fecha_nacimiento,
-            c.fecha_cita,
-            c.hora_cita,
-            con.tipo, 
-            pd.descripcion,
-            pd.medicina,
-            YEAR(CURDATE()) - YEAR(p.fecha_nacimiento) AS años
-        FROM 
-            `citas` AS c
+        SELECT c.id_cita, c.estado, p.nombre, p.apellido, d.nombreD, p.fecha_nacimiento, c.fecha_cita, c.hora_cita, con.tipo, pd.descripcion, pd.medicina, YEAR(CURDATE()) - YEAR(p.fecha_nacimiento) AS años
+        FROM `citas` AS c
         LEFT JOIN `pacientes` AS p ON p.id_paciente = c.id_paciente
         LEFT JOIN `doctor` AS d ON d.id_doctor = c.id_doctor
         LEFT JOIN `consultas` AS con ON con.id_consultas = c.id_consultas
         LEFT JOIN `paciente_diagnostico` AS pd ON pd.id_cita = c.id_cita
-        WHERE c.estado = 'A' AND p.id_paciente = $id;
-    ";
-    return mysqli_query($link, $query);
+        WHERE c.estado = 'A' AND p.id_paciente = ?";
+
+    $stmt = $link->prepare($query);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+    $stmt->close();
+    return $resultado;
 }
 ?>

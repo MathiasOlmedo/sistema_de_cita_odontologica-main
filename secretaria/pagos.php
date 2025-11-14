@@ -4,22 +4,22 @@ ini_set('display_errors', 1);
 
 include_once __DIR__ . '/../php/conexionDB.php';
 
-// 🔹 Iniciar sesión correctamente
 if (session_status() !== PHP_SESSION_ACTIVE) {
   session_start();
 }
 
-// 🔹 Permitir acceso a secretaria, admin o doctor
+// Estandarizar control de acceso
 if (
-  empty($_SESSION['id_secretaria']) &&
-  empty($_SESSION['id_admin']) &&
-  empty($_SESSION['id_doctor'])
+  empty($_SESSION['id_usuario']) ||
+  ($_SESSION['tipo'] ?? '') !== 'Secretaria'
 ) {
   header('Location: ../index.php');
   exit;
 }
 
-// 🔹 Buscar paciente o presupuesto
+$usuario = $_SESSION['nombre'] ?? 'Secretaría';
+
+// Búsqueda segura (ya estaba bien implementada)
 $q = trim($_GET['q'] ?? '');
 if ($q !== '') {
   $qLike = "%$q%";
@@ -51,7 +51,7 @@ $res = $stmt->get_result();
 $presupuestos = $res->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// 🔹 Registrar nuevo pago
+// Registrar nuevo pago (ya estaba bien implementado)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_presupuesto'], $_POST['monto'])) {
   $id_presupuesto = (int)$_POST['id_presupuesto'];
   $monto = (float)$_POST['monto'];
@@ -73,41 +73,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_presupuesto'], $_P
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Pagos · Secretaría</title>
-<link rel="stylesheet" href="../src/css/lib/bootstrap/css/bootstrap.min.css">
-<link rel="stylesheet" href="../src/css/lib/fontawesome/css/all.min.css">
-<script src="../src/js/jquery.js"></script>
-<script src="../src/css/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-
+<title>Gestión de Pagos — Secretaría</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <style>
 :root{
-  --brand:#0d6efd;
-  --brand-100:#e7f1ff;
-  --surface:#f8f9fa;
-  --text:#212529;
-  --sidebar-w:260px;
+  --brand:#0d6efd; --brand-100:#e7f1ff;
+  --surface:#f8f9fa; --text:#212529;
+  --sidebar-w:260px; --radius:12px;
 }
-body{margin:0; background:var(--surface); color:var(--text);}
+body{margin:0;background:var(--surface);color:var(--text);}
 .sidebar{
-  position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh;
-  background:#fff; padding:1.25rem 1rem; border-right:0; box-shadow:none; z-index:1030;
+  position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+  background:#fff;padding:1.25rem 1rem;border-right:1px solid rgba(0,0,0,.08);box-shadow:0 6px 16px rgba(15,23,42,.04);z-index:1030;
 }
-.brand{display:flex; align-items:center; gap:.75rem;}
-.brand-title{margin:0; font-weight:700; color:var(--brand);}
-.profile{text-align:center; margin:1rem 0;}
-.profile img{width:96px; height:96px; object-fit:cover;}
-.nav-menu{display:flex; flex-direction:column; gap:.25rem;}
+.brand{display:flex;align-items:center;gap:.75rem;}
+.brand-title{margin:0;font-weight:700;color:var(--brand);}
+.profile{text-align:center;margin:1rem 0;}
+.profile img{width:96px;height:96px;object-fit:cover;}
+.nav-menu{display:flex;flex-direction:column;gap:.25rem;}
 .nav-menu .nav-link{
-  display:flex; align-items:center; gap:.6rem;
-  border-radius:.6rem; padding:.6rem .75rem; color:#495057; text-decoration:none;
+  display:flex;align-items:center;gap:.6rem;
+  border-radius:.6rem;padding:.6rem .75rem;color:#495057;text-decoration:none;
 }
-.nav-menu .nav-link.active,
-.nav-menu .nav-link:hover{background:var(--brand-100); color:var(--brand);}
-.main{margin-left:var(--sidebar-w); padding:1.5rem;}
+.nav-menu .nav-link:hover,.nav-menu .nav-link.active{
+  background:var(--brand-100);color:var(--brand);font-weight:600;
+}
+.main{margin-left:var(--sidebar-w);min-height:100vh;padding:1.5rem;}
 .topbar{
-  background:#fff; border-bottom:1px solid rgba(0,0,0,.06);
-  padding:.75rem 1rem; position:sticky; top:0; z-index:10;
+  background:#fff;border-radius:var(--radius);border:1px solid rgba(0,0,0,.06);
+  padding:.75rem 1rem;position:sticky;top:0;z-index:10;
 }
+.card{border-radius:var(--radius);border:1px solid rgba(0,0,0,.06);box-shadow:0 6px 16px rgba(15,23,42,.06);}
 </style>
 </head>
 <body>
@@ -120,30 +118,31 @@ body{margin:0; background:var(--surface); color:var(--text);}
   </div>
   <div class="profile">
     <img src="../src/img/secretaria.png" class="rounded-circle border" alt="Perfil">
-    <div class="name">Secretaría</div>
-    <div class="small text-muted">Panel de control</div>
+    <div class="name"><?= htmlspecialchars($usuario) ?></div>
+    <div class="small text-muted">Panel Secretaría</div>
   </div>
   <nav class="nav-menu">
-    <a href="gestionar_pacientes.php" class="nav-link"><i class="fa-solid fa-users"></i> Pacientes</a>
-    <a href="pagos.php" class="nav-link active"><i class="fa-solid fa-cash-register"></i> Pagos</a>
-    <a href="gestionar_citas.php" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Citas</a>
-    <a href="presupuestos_pendientes.php" class="nav-link"><i class="fa-solid fa-clock"></i> Presupuestos pendientes</a>
-    <a href="perfil_secretaria.php" class="nav-link"><i class="fa-solid fa-user-gear"></i> Perfil</a>
-    <a href="../php/cerrar.php" class="nav-link text-danger"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</a>
+    <a href="gestionar_pacientes.php" class="nav-link"><i class="bi bi-people"></i> Pacientes</a>
+    <a href="../gestionar_dentistas.php" class="nav-link"><i class="bi bi-person-badge"></i> Dentistas</a>
+    <a href="pagos.php" class="nav-link active"><i class="bi bi-cash-stack"></i> Pagos</a>
+    <a href="gestionar_citas.php" class="nav-link"><i class="bi bi-calendar-check"></i> Citas</a>
+    <a href="presupuestos_pendientes.php" class="nav-link"><i class="bi bi-clock-history"></i> Presupuestos</a>
+    <a href="#" class="nav-link"><i class="bi bi-person-gear"></i> Perfil</a>
+    <a href="../php/cerrar.php" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
   </nav>
 </aside>
 
 <!-- Main -->
 <div class="main">
   <div class="topbar d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0 text-primary"><i class="fa-solid fa-cash-register me-2"></i>Gestión de Pagos</h4>
+    <h4 class="mb-0 text-primary"><i class="bi bi-cash-stack me-2"></i>Gestión de Pagos</h4>
     <small class="text-muted">Registrar abonos y saldos</small>
   </div>
 
   <form class="mb-3" method="get">
     <div class="input-group">
       <input type="text" name="q" class="form-control" value="<?= htmlspecialchars($q) ?>" placeholder="Buscar por nombre o folio">
-      <button class="btn btn-primary"><i class="fa-solid fa-search"></i></button>
+      <button class="btn btn-primary"><i class="bi bi-search"></i></button>
     </div>
   </form>
 
@@ -168,23 +167,23 @@ body{margin:0; background:var(--surface); color:var(--text);}
                 <td><?= htmlspecialchars($p['paciente_nombre']) ?></td>
                 <td>$ <?= number_format($p['total'],2) ?></td>
                 <td class="text-success">$ <?= number_format($p['pagado'],2) ?></td>
-                <td class="text-danger">$ <?= number_format($p['saldo'],2) ?></td>
+                <td class="text-danger fw-bold">$ <?= number_format($p['saldo'],2) ?></td>
                 <td>
                   <?php if($p['saldo'] > 0): ?>
                     <button class="btn btn-sm btn-primary btnPagar" 
                             data-id="<?= $p['id_presupuesto'] ?>"
                             data-paciente="<?= htmlspecialchars($p['paciente_nombre']) ?>"
                             data-saldo="<?= $p['saldo'] ?>">
-                      Registrar abono
+                      <i class="bi bi-plus-circle me-1"></i> Registrar abono
                     </button>
                   <?php else: ?>
-                    <span class="badge bg-success">Cancelado</span>
+                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Cancelado</span>
                   <?php endif; ?>
                 </td>
               </tr>
             <?php endforeach; ?>
             <?php if(empty($presupuestos)): ?>
-              <tr><td colspan="6" class="text-center text-muted">Sin resultados</td></tr>
+              <tr><td colspan="6" class="text-center text-muted p-4">No se encontraron presupuestos.</td></tr>
             <?php endif; ?>
           </tbody>
         </table>
@@ -198,8 +197,8 @@ body{margin:0; background:var(--surface); color:var(--text);}
   <div class="modal-dialog">
     <form method="post" class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title"><i class="fa-solid fa-dollar-sign me-2"></i>Registrar abono</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title"><i class="bi bi-currency-dollar me-2"></i>Registrar abono</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <input type="hidden" name="id_presupuesto" id="id_presupuesto">
@@ -217,7 +216,7 @@ body{margin:0; background:var(--surface); color:var(--text);}
         </div>
         <div class="mb-2">
           <label class="form-label">Método de pago</label>
-          <select name="metodo" class="form-control">
+          <select name="metodo" class="form-select">
             <option value="efectivo">Efectivo</option>
             <option value="transferencia">Transferencia</option>
             <option value="tarjeta">Tarjeta</option>
@@ -229,13 +228,14 @@ body{margin:0; background:var(--surface); color:var(--text);}
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary">Registrar</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-primary">Registrar Pago</button>
       </div>
     </form>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 $(function(){
   $('.btnPagar').on('click', function(){

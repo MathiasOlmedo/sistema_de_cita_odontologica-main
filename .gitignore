@@ -1,0 +1,36 @@
+# Dependencies
+/node_modules/
+/vendor/
+
+# Generated files
+/presupuestos/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local configuration
+# Si tienes un archivo para variables de entorno, descomenta la siguiente línea
+# .env
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Database dumps
+# Es una buena práctica no versionar los volcados de la base de datos.
+# Si necesitas que este archivo esté en el repositorio, puedes eliminar la siguiente línea.
+database/*.sql

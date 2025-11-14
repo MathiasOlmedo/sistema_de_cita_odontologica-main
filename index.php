@@ -4,7 +4,6 @@ include_once('./php/consultas.php');
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-// Iniciar sesión
 
 // Si ya hay una sesión activa, redirigir según el tipo
 if (isset($_SESSION['id_usuario']) && isset($_SESSION['tipo'])) {
@@ -13,7 +12,7 @@ if (isset($_SESSION['id_usuario']) && isset($_SESSION['tipo'])) {
             header("Location: principal.php");
             exit();
         case 'Doctor':
-            header("Location: doctor.php");
+            header("Location: admin/inicioAdmin.php"); // Corregido para doctores
             exit();
         case 'Secretaria':
             header("Location: secretaria/presupuestos_pendientes.php");
@@ -26,53 +25,44 @@ if (isset($_SESSION['id_usuario']) && isset($_SESSION['tipo'])) {
 
 // Si el usuario envió el formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $vUsuario = trim(htmlspecialchars($_POST['username']));
-    $vClave   = trim(htmlspecialchars($_POST['password']));
+    // Usar filter_input para más seguridad al leer variables POST
+    $vUsuario = filter_input(INPUT_POST, 'username', FILTER_VALIDATE_EMAIL);
+    $vClave   = $_POST['password']; // No se filtra para que password_verify funcione
 
-    // Login directo para secretaria
-    if ($vUsuario === 'secretaria@clinic.com' && $vClave === 'secret123') {
-        $_SESSION['id_usuario'] = 1;
-        $_SESSION['nombre']     = 'Secretaria';
-        $_SESSION['tipo']       = 'Secretaria';
-        header("Location: secretaria/presupuestos_pendientes.php");
-        exit();
-    }
-
-    // Login directo para superadmin (si lo querés tener activo)
-    if ($vUsuario === 'admin@admin.com' && $vClave === 'admin') {
-        $_SESSION['id_usuario'] = 1;
-        $_SESSION['nombre']     = 'Super Admin';
-        $_SESSION['tipo']       = 'SuperAdmin';
-        header("Location: superadmin_dashboard.php");
-        exit();
-    }
-
-    // Verificación en base de datos (paciente o doctor)
-    $usuario = validarLogin($link, $vUsuario, $vClave);
-
-    if ($usuario) {
-        $_SESSION['id_usuario'] = $usuario['id'];
-        $_SESSION['nombre']     = $usuario['nombre'];
-        $_SESSION['tipo']       = $usuario['tipo'];
-
-        // Redirección según tipo
-        switch ($usuario['tipo']) {
-            case 'Paciente':
-                header("Location: principal.php");
-                exit();
-            case 'Doctor':
-                header("Location: doctor.php");
-                exit();
-            case 'Secretaria':
-                header("Location: secretaria/presupuestos_pendientes.php");
-                exit();
-            case 'SuperAdmin':
-                header("Location: superadmin_dashboard.php");
-                exit();
-        }
-    } else {
-        $_SESSION['MensajeTexto'] = "Usuario o contraseña incorrectos.";
+    if ($vUsuario === false) {
+        $_SESSION['MensajeTexto'] = "Formato de correo electrónico no válido.";
         $_SESSION['MensajeTipo']  = "alert alert-danger";
+    } else {
+        // Verificación en base de datos usando la nueva función segura
+        $usuario = validarLogin($link, $vUsuario, $vClave);
+
+        if ($usuario) {
+            // Login exitoso, establecer variables de sesión
+            $_SESSION['id_usuario'] = $usuario['id'];
+            $_SESSION['nombre']     = $usuario['nombre'];
+            $_SESSION['tipo']       = $usuario['tipo'];
+
+            // Redirección según el tipo de usuario
+            switch ($usuario['tipo']) {
+                case 'Paciente':
+                    header("Location: principal.php");
+                    exit();
+                case 'Doctor':
+                    header("Location: admin/inicioAdmin.php"); // Ruta correcta para doctores
+                    exit();
+                case 'Secretaria':
+                    // Asumiendo que hay una tabla y rol para secretaria
+                    header("Location: secretaria/presupuestos_pendientes.php");
+                    exit();
+                case 'SuperAdmin':
+                    header("Location: superadmin_dashboard.php");
+                    exit();
+            }
+        } else {
+            // Falla en el login
+            $_SESSION['MensajeTexto'] = "Usuario o contraseña incorrectos.";
+            $_SESSION['MensajeTipo']  = "alert alert-danger";
+        }
     }
 }
 ?>
@@ -97,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container login-container">
         <div class="row">
             <div class="col-md-6 ads">
-                <h1><span id="fl">Perfect</span><span id="sl"> Teeth</span></h1>
+                <h1><span id="fl">Perfect</span><span id="sl">Teeth</span></h1>
             </div>
 
             <div class="col-md-6 login-form">

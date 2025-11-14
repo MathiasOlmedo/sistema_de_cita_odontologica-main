@@ -4,23 +4,27 @@ include_once('./php/consultas.php');
 
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
-/* ====== CONTROL DE SESIÓN ====== */
-if (!isset($_SESSION['id_superadmin'])) {
+/* ====== CONTROL DE SESIÓN UNIFICADO ====== */
+if (
+    !isset($_SESSION['id_usuario']) ||
+    $_SESSION['tipo'] !== 'SuperAdmin'
+) {
     $_SESSION['MensajeTexto'] = "Acceso no autorizado.";
-    $_SESSION['MensajeTipo']  = "p-3 mb-2 bg-danger text-white";
-    header("Location: /sistema_de_cita_odontologica-main/index.php");
+    $_SESSION['MensajeTipo']  = "alert alert-danger";
+    header("Location: ./index.php");
     exit;
 }
 
-$usuario = $_SESSION['usuario'] ?? 'Super Admin';
+// Usar la variable de sesión de nombre unificada
+$usuario = $_SESSION['nombre'] ?? 'Super Admin';
 
 date_default_timezone_set("America/Asuncion");
 $fecha = date("d/m/Y");
 $hora  = date("H:i");
 
 /* ====== Sidebar variables (estándar) ====== */
-$SIDEBAR_ACTIVE = 'superadmin'; // solo referencial en caso de reutilizar componentes
-$AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; // cámbialo si tienes uno de superadmin
+$SIDEBAR_ACTIVE = 'superadmin';
+$AVATAR_IMG     = "./src/img/admin_user.png";
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -142,7 +146,7 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
 <!-- ===== Sidebar estandarizado ===== -->
 <aside class="sidebar">
   <div class="brand mb-2">
-    <img src="/sistema_de_cita_odontologica-main/src/img/logo.png" alt="Perfect Teeth" width="32" height="32">
+    <img src="./src/img/logo.png" alt="Perfect Teeth" width="32" height="32">
     <h1 class="brand-title">Perfect Teeth</h1>
   </div>
 
@@ -159,13 +163,10 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
     <a class="nav-link" href="#" onclick="loadContent('gestionar_dentistas.php')">
       <i class="bi bi-person-badge"></i><span>Gestionar Dentistas</span>
     </a>
-    <a class="nav-link" href="#" onclick="loadContent('gestionar_citas.php')">
+    <a class="nav-link" href="#" onclick="loadContent('secretaria/gestionar_citas.php')">
       <i class="bi bi-calendar-check"></i><span>Gestionar Citas</span>
     </a>
-    <a class="nav-link" href="gestionar_usuarios.php">
-      <i class="bi bi-person-gear"></i><span>Gestionar Usuarios</span>
-    </a>
-    <a class="nav-link" href="./Reportes/reporte.php">
+    <a class="nav-link" href="#" onclick="loadContent('reportes_globales.php')">
       <i class="bi bi-graph-up"></i><span>Reportes</span>
     </a>
     <a class="nav-link" href="php/cerrar.php">
@@ -211,10 +212,10 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
                 <button class="btn btn-outline-primary btn-sm" onclick="loadContent('gestionar_dentistas.php')">
                   <i class="bi bi-person-badge me-1"></i> Dentistas
                 </button>
-                <button class="btn btn-outline-primary btn-sm" onclick="loadContent('gestionar_citas.php')">
+                <button class="btn btn-outline-primary btn-sm" onclick="loadContent('secretaria/gestionar_citas.php')">
                   <i class="bi bi-calendar-check me-1"></i> Citas
                 </button>
-                <a class="btn btn-primary btn-sm" href="reportes.php">
+                <a class="btn btn-primary btn-sm" href="#" onclick="loadContent('reportes_globales.php')">
                   <i class="bi bi-graph-up me-1"></i> Reportes
                 </a>
               </div>
@@ -228,7 +229,7 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
         <div class="card">
           <div class="card-body">
             <h6 class="text-primary fw-bold mb-2">Inicio</h6>
-            <p class="mb-0">Usa el menú de la izquierda para administrar pacientes, dentistas, citas, usuarios y ver reportes.</p>
+            <p class="mb-0">Usa el menú de la izquierda para administrar pacientes, dentistas, citas y ver reportes.</p>
           </div>
         </div>
       </div>
@@ -244,22 +245,35 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
 <!-- Scripts -->
 <script>
 function loadContent(page) {
+  // Prevenir recarga si ya está activo
+  const activeLink = $('.nav-menu .nav-link.active');
+  if (activeLink.length > 0 && activeLink.attr('onclick').includes(page)) {
+    return;
+  }
+
   $('.nav-menu .nav-link').removeClass('active');
   $('.nav-menu .nav-link[onclick*="'+page+'"]').addClass('active');
 
   $.ajax({
     url: page,
     type: "GET",
+    beforeSend: function() {
+      $("#dynamic-content").html("<div class='card'><div class='card-body text-center'><div class='spinner-border text-primary' role='status'><span class='visually-hidden'>Cargando...</span></div></div></div>");
+    },
     success: function(response) {
       $("#dynamic-content").html(response);
-      // Scroll arriba tras cargar
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     error: function() {
-      $("#dynamic-content").html("<div class='card'><div class='card-body'><p class='text-danger mb-0'>Error al cargar el contenido.</p></div></div>");
+      $("#dynamic-content").html("<div class='card'><div class='card-body'><p class='text-danger mb-0'>Error al cargar el contenido. Verifique que el archivo '"+page+"' existe y no tiene errores.</p></div></div>");
     }
   });
 }
+
+// Cargar la vista inicial de pacientes al entrar
+$(document).ready(function() {
+    loadContent('gestionar_pacientes.php');
+});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

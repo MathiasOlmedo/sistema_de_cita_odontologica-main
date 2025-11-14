@@ -1,89 +1,100 @@
 <?php
 try {
     include_once('../php/conexionDB.php');
-    include_once('../php/consultas.php');
-    if (!empty($_GET['opciones'])) {
-        $opcion = $_GET['opciones'];
-    } else {
+
+    if (session_status() == PHP_SESSION_NONE) {
         session_start();
+    }
+
+    if (empty($_GET['opciones'])) {
         $_SESSION['MensajeTexto'] = "Advertencia: Acción no permitida";
         $_SESSION['MensajeTipo'] = "is-warning";
         header("Location: ../index.php");
         exit();
     }
 
+    $opcion = $_GET['opciones'];
+
     switch ($opcion) {
         case 'INS':
             if (isset($_POST['ingresar'])) {
-                $nombre = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
-                $apellido = filter_var($_POST['apellido'], FILTER_SANITIZE_STRING);
-                $cedula = filter_var($_POST['cedula'], FILTER_SANITIZE_STRING);
-                $telefono = filter_var($_POST['cell'], FILTER_SANITIZE_STRING);
-                $sexo = filter_var($_POST['sexo'], FILTER_SANITIZE_STRING);
-                $fecha = filter_var($_POST['nacimiento'], FILTER_SANITIZE_STRING);
-                $correo = filter_var($_POST['correo'], FILTER_SANITIZE_STRING);
-                $clave = filter_var($_POST['password'], FILTER_SANITIZE_STRING);
+                $nombre = $_POST['name'];
+                $apellido = $_POST['apellido'];
+                $cedula = $_POST['cedula'];
+                $telefono = $_POST['cell'];
+                $sexo = $_POST['sexo'];
+                $fecha = $_POST['nacimiento'];
+                $correo = $_POST['correo'];
+                $clave_hasheada = password_hash($_POST['password'], PASSWORD_BCRYPT);
 
-                $query = "
-                    INSERT INTO `pacientes`
-                    (`nombre`, `apellido`, `cedula`, `telefono`, `sexo`, `fecha_nacimiento`, `correo_electronico`, `clave`)
-                    VALUES ('$nombre', '$apellido', '$cedula', '$telefono', '$sexo', '$fecha', '$correo', '$clave')";
-            }
+                $query = "INSERT INTO `pacientes` (`nombre`, `apellido`, `cedula`, `telefono`, `sexo`, `fecha_nacimiento`, `correo_electronico`, `clave`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                
+                $stmt = mysqli_prepare($link, $query);
+                mysqli_stmt_bind_param($stmt, "ssssssss", $nombre, $apellido, $cedula, $telefono, $sexo, $fecha, $correo, $clave_hasheada);
+                $resultado = mysqli_stmt_execute($stmt);
 
-            $resultado = mysqli_query($link, $query);
-            session_start();
-            if (!$resultado) {
-                $_SESSION['MensajeTexto'] = "Error insertando el contenido: " . mysqli_error($link);
-                $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
+                if (!$resultado) {
+                    error_log("Error en registro INS: " . mysqli_stmt_error($stmt));
+                    $_SESSION['MensajeTexto'] = "Error al registrar. Intente de nuevo.";
+                    $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
+                } else {
+                    $_SESSION['MensajeTexto'] = "Registro almacenado con éxito, por favor inicie sesión.";
+                    $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-info text-white";
+                }
+                mysqli_stmt_close($stmt);
                 header("Location: ../index.php");
-            } else {
-                $_SESSION['MensajeTexto'] = "Registro almacenado con éxito, por favor inicie sesión.";
-                $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-info text-white";
-                header("Location: ../index.php");
+                exit();
             }
-            mysqli_close($link);
             break;
 
         case 'INSDOCT':
             if (isset($_POST['guardar'])) {
-                $nombre = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
-                $apellido = filter_var($_POST['apellido'], FILTER_SANITIZE_STRING);
-                $sexo = filter_var($_POST['sexo'], FILTER_SANITIZE_STRING);
-                $fecha = filter_var($_POST['nacimiento'], FILTER_SANITIZE_STRING);
-                $correo = filter_var($_POST['correo'], FILTER_SANITIZE_STRING);
-                $telefono = filter_var($_POST['cell'], FILTER_SANITIZE_STRING);
-                $clave = filter_var($_POST['clave'], FILTER_SANITIZE_STRING);
-                $especialidad = filter_var($_POST['especialidad'], FILTER_SANITIZE_STRING);
+                $nombre = $_POST['name'];
+                $apellido = $_POST['apellido'];
+                $sexo = $_POST['sexo'];
+                $fecha = $_POST['nacimiento'];
+                $correo = $_POST['correo'];
+                $telefono = $_POST['cell'];
+                $clave_hasheada = password_hash($_POST['clave'], PASSWORD_BCRYPT);
+                $especialidad = $_POST['especialidad'];
 
-                $query = "
-                    INSERT INTO `doctor`
-                    (`nombreD`, `apellido`, `sexo`, `fecha_nacimiento`, `telefono`, `correo_eletronico`, `clave`, `id_especialidad`)
-                    VALUES ('$nombre', '$apellido', '$sexo', '$fecha', '$telefono', '$correo', '$clave', '$especialidad')";
-            }
+                $query = "INSERT INTO `doctor` (`nombreD`, `apellido`, `sexo`, `fecha_nacimiento`, `telefono`, `correo_eletronico`, `clave`, `id_especialidad`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                
+                $stmt = mysqli_prepare($link, $query);
+                // Asumiendo que id_especialidad es un entero (i)
+                mysqli_stmt_bind_param($stmt, "sssssssi", $nombre, $apellido, $sexo, $fecha, $telefono, $correo, $clave_hasheada, $especialidad);
+                $resultado = mysqli_stmt_execute($stmt);
 
-            $resultado = mysqli_query($link, $query);
-            session_start();
-            if (!$resultado) {
-                $_SESSION['MensajeTexto'] = "Error insertando el contenido: " . mysqli_error($link);
-                $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
+                if (!$resultado) {
+                    error_log("Error en registro INSDOCT: " . mysqli_stmt_error($stmt));
+                    $_SESSION['MensajeTexto'] = "Error al registrar el doctor.";
+                    $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
+                } else {
+                    $_SESSION['MensajeTexto'] = "Registro de doctor almacenado con éxito.";
+                    $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-info text-white";
+                }
+                mysqli_stmt_close($stmt);
                 header("Location: ../admin/doctores.php");
-            } else {
-                $_SESSION['MensajeTexto'] = "Registro almacenado con éxito.";
-                $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-info text-white";
-                header("Location: ../admin/doctores.php");
+                exit();
             }
-            mysqli_close($link);
             break;
 
         default:
-            session_start();
             $_SESSION['MensajeTexto'] = "Advertencia: No se pudo identificar la acción a realizar";
             $_SESSION['MensajeTipo'] = "bg-warning text-dark";
             header("Location: ../index.php");
-            break;
+            exit();
     }
+
+    mysqli_close($link);
+
 } catch (Exception $e) {
-    print "Exception no controlado 01: " . $e->getMessage();
+    error_log("Exception no controlado 01: " . $e->getMessage());
+    // Redirigir a una página de error genérica para no exponer detalles
+    header("Location: ../error.php"); 
+    exit();
 } catch (Error $e) {
-    print "Error no controlado 01: " . $e->getMessage();
+    error_log("Error no controlado 01: " . $e->getMessage());
+    header("Location: ../error.php");
+    exit();
 }

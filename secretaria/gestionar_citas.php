@@ -19,23 +19,28 @@ $usuario = $_SESSION['nombre'] ?? 'Secretaría';
 /* ======= Cargar doctores para el filtro ======= */
 $doctores = mysqli_query($link, "SELECT id_doctor, CONCAT(nombreD, ' ', apellido) AS nombre FROM doctor ORDER BY nombreD ASC");
 
-/* ======= Filtros ======= */
+/* ======= Filtros Seguros con Consultas Preparadas ======= */
 $where = "1=1";
+$params = [];
+$types = '';
 
 if (!empty($_GET['nombre'])) {
-  $nombre = mysqli_real_escape_string($link, $_GET['nombre']);
-  $where .= " AND p.nombre LIKE '%$nombre%'";
+  $where .= " AND p.nombre LIKE ?";
+  $params[] = "%" . $_GET['nombre'] . "%";
+  $types .= 's';
 }
 if (!empty($_GET['fecha'])) {
-  $fecha = mysqli_real_escape_string($link, $_GET['fecha']);
-  $where .= " AND c.fecha_cita = '$fecha'";
+  $where .= " AND c.fecha_cita = ?";
+  $params[] = $_GET['fecha'];
+  $types .= 's';
 }
 if (!empty($_GET['doctor'])) {
-  $doctor = (int)$_GET['doctor'];
-  $where .= " AND c.id_doctor = $doctor";
+  $where .= " AND c.id_doctor = ?";
+  $params[] = (int)$_GET['doctor'];
+  $types .= 'i';
 }
 
-/* ======= Consultar citas ======= */
+/* ======= Consultar citas de forma segura ======= */
 $sql = "
   SELECT 
     c.id_cita, c.fecha_cita, c.hora_cita, c.estado,
@@ -47,8 +52,15 @@ $sql = "
   WHERE $where
   ORDER BY c.fecha_cita DESC, c.hora_cita ASC
 ";
-$citas = mysqli_query($link, $sql);
-if (!$citas) die("<b>Error SQL:</b> " . mysqli_error($link));
+
+$stmt = $link->prepare($sql);
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+$stmt->execute();
+$citas = $stmt->get_result();
+if (!$citas) die("<b>Error SQL:</b> " . $stmt->error);
+
 
 date_default_timezone_set("America/Asuncion");
 $fecha = date("d/m/Y");
@@ -134,7 +146,9 @@ body{margin:0;background:var(--surface);color:var(--text);}
         <div class="col-md-4">
           <select name="doctor" class="form-select">
             <option value="">-- Todos los doctores --</option>
-            <?php while ($d = mysqli_fetch_assoc($doctores)) { ?>
+            <?php 
+            mysqli_data_seek($doctores, 0); // Reset pointer
+            while ($d = mysqli_fetch_assoc($doctores)) { ?>
               <option value="<?= $d['id_doctor'] ?>" <?= (isset($_GET['doctor']) && $_GET['doctor'] == $d['id_doctor']) ? 'selected' : '' ?>>
                 <?= htmlspecialchars($d['nombre']) ?>
               </option>
@@ -164,7 +178,7 @@ body{margin:0;background:var(--surface);color:var(--text);}
             </tr>
           </thead>
           <tbody>
-            <?php while ($c = mysqli_fetch_assoc($citas)) { ?>
+            <?php while ($c = $citas->fetch_assoc()) { ?>
             <tr>
               <td><?= $c['id_cita'] ?></td>
               <td><?= htmlspecialchars($c['nombre_paciente'] . " " . $c['apellido_paciente']) ?></td>
@@ -198,7 +212,7 @@ body{margin:0;background:var(--surface);color:var(--text);}
           </tbody>
         </table>
       </div>
-      <p class="text-muted small mb-0">Total de citas: <strong><?= mysqli_num_rows($citas) ?></strong></p>
+      <p class="text-muted small mb-0">Total de citas: <strong><?= $citas->num_rows ?></strong></p>
     </div>
   </div>
 </div>
