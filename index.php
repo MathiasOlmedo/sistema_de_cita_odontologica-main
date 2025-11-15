@@ -19,7 +19,7 @@ if (isset($_SESSION['id_usuario']) && isset($_SESSION['tipo'])) {
             if (!isset($_SESSION['id_doctor'])) {
                 $_SESSION['id_doctor'] = $_SESSION['id_usuario'];
             }
-            header("Location: Admin/inicioAdmin.php"); // Corregido para doctores
+            header("Location: Admin/inicioAdmin.php");
             exit();
         case 'Secretaria':
             if (!isset($_SESSION['id_secretaria'])) {
@@ -38,24 +38,20 @@ if (isset($_SESSION['id_usuario']) && isset($_SESSION['tipo'])) {
 
 // Si el usuario envió el formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Usar filter_input para más seguridad al leer variables POST
     $vUsuario = filter_input(INPUT_POST, 'username', FILTER_VALIDATE_EMAIL);
-    $vClave   = $_POST['password']; // No se filtra para que password_verify funcione
+    $vClave   = $_POST['password'];
 
     if ($vUsuario === false) {
         $_SESSION['MensajeTexto'] = "Formato de correo electrónico no válido.";
         $_SESSION['MensajeTipo']  = "alert alert-danger";
     } else {
-        // Verificación en base de datos usando la nueva función segura
         $usuario = validarLogin($link, $vUsuario, $vClave);
 
         if ($usuario) {
-            // Login exitoso, establecer variables de sesión
             $_SESSION['id_usuario'] = $usuario['id'];
             $_SESSION['nombre']     = $usuario['nombre'];
             $_SESSION['tipo']       = $usuario['tipo'];
 
-            // Establecer variables de sesión específicas según el tipo de usuario
             switch ($usuario['tipo']) {
                 case 'Paciente':
                     $_SESSION['id_paciente'] = $usuario['id'];
@@ -63,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit();
                 case 'Doctor':
                     $_SESSION['id_doctor'] = $usuario['id'];
-                    header("Location: Admin/inicioAdmin.php"); // Ruta correcta para doctores
+                    header("Location: Admin/inicioAdmin.php");
                     exit();
                 case 'Secretaria':
                     $_SESSION['id_secretaria'] = $usuario['id'];
@@ -75,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit();
             }
         } else {
-            // Falla en el login
             $_SESSION['MensajeTexto'] = "Usuario o contraseña incorrectos.";
             $_SESSION['MensajeTipo']  = "alert alert-danger";
         }
@@ -97,6 +92,157 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="src/css/login.css" />
     <link href="src/css/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="src/css/lib/fontawesome/css/all.css">
+
+    <style>
+        /* ============================================
+           ESTILOS MEJORADOS PARA NOTIFICACIONES
+           ============================================ */
+
+        .notification-card {
+            margin-top: 1.5rem !important;
+            border: none !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            animation: slideIn 0.4s ease-out !important;
+        }
+
+        .notification-card:hover {
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2) !important;
+            transform: translateY(-4px) !important;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* NOTIFICACIÓN BASE */
+        .notification {
+            padding: 1.25rem 1.5rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 1rem !important;
+            border-radius: 12px !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.3px !important;
+            border: none !important;
+            background-color: transparent !important;
+        }
+
+        /* PELIGRO / ERROR */
+        .notification.alert-danger {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%) !important;
+            color: #c92a2a !important;
+            border-left: 5px solid #c92a2a !important;
+        }
+
+        .notification.alert-danger:hover {
+            background: linear-gradient(135deg, #ffe0e0 0%, #ffc9c9 100%) !important;
+        }
+
+        /* ÉXITO */
+        .notification.alert-success {
+            background: linear-gradient(135deg, #f1fdf4 0%, #d3f9d8 100%) !important;
+            color: #2f9e44 !important;
+            border-left: 5px solid #2f9e44 !important;
+        }
+
+        .notification.alert-success:hover {
+            background: linear-gradient(135deg, #d3f9d8 0%, #b2f2bb 100%) !important;
+        }
+
+        /* ADVERTENCIA */
+        .notification.alert-warning {
+            background: linear-gradient(135deg, #fffbeb 0%, #ffd666 100%) !important;
+            color: #e67700 !important;
+            border-left: 5px solid #e67700 !important;
+        }
+
+        .notification.alert-warning:hover {
+            background: linear-gradient(135deg, #ffd666 0%, #ffc233 100%) !important;
+        }
+
+        /* INFORMACIÓN */
+        .notification.alert-info {
+            background: linear-gradient(135deg, #e7f5ff 0%, #b3e5fc 100%) !important;
+            color: #1971c2 !important;
+            border-left: 5px solid #1971c2 !important;
+        }
+
+        .notification.alert-info:hover {
+            background: linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%) !important;
+        }
+
+        /* CONTENEDOR DE TEXTO */
+        .notification-text {
+            flex: 1 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+        }
+
+        /* ICONO */
+        .notification-icon {
+            font-size: 1.5rem !important;
+            display: flex !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
+        }
+
+        /* BOTÓN DE CIERRE */
+        .notification .delete {
+            background: none !important;
+            border: none !important;
+            font-size: 1.3rem !important;
+            cursor: pointer !important;
+            opacity: 0.6 !important;
+            transition: all 0.2s ease !important;
+            padding: 0.5rem !important;
+            width: 36px !important;
+            height: 36px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 8px !important;
+            color: inherit !important;
+            flex-shrink: 0 !important;
+        }
+
+        .notification .delete:hover {
+            opacity: 1 !important;
+            background-color: rgba(0, 0, 0, 0.12) !important;
+            transform: scale(1.1) !important;
+        }
+
+        .notification .delete:active {
+            transform: scale(0.95) !important;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .notification {
+                padding: 1rem 1.25rem !important;
+                flex-direction: row !important;
+            }
+
+            .notification-text {
+                gap: 0.5rem !important;
+            }
+
+            .notification-icon {
+                font-size: 1.25rem !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -143,10 +289,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </form>
 
                 <?php if (isset($_SESSION['MensajeTexto'])): ?>
-                    <div class="card mt-3">
+                    <div class="notification-card">
                         <div class="notification <?php echo $_SESSION['MensajeTipo']; ?>">
-                            <?php echo $_SESSION['MensajeTexto']; ?>
-                            <button class="delete"><i class="fas fa-times"></i></button>
+                            <div class="notification-text">
+                                <span class="notification-icon">
+                                    <i class="fas <?php echo strpos($_SESSION['MensajeTipo'], 'danger') !== false ? 'fa-exclamation-circle' : 'fa-check-circle'; ?>"></i>
+                                </span>
+                                <span><?php echo $_SESSION['MensajeTexto']; ?></span>
+                            </div>
+                            <button type="button" class="delete" aria-label="Cerrar notificación">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     </div>
                     <?php
@@ -161,9 +314,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
-                const $notification = $delete.parentNode;
-                $delete.addEventListener('click', () => {
-                    $notification.remove();
+                $delete.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const $notification = $delete.closest('.notification-card');
+                    $notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                    setTimeout(() => {
+                        $notification.remove();
+                    }, 300);
                 });
             });
         });

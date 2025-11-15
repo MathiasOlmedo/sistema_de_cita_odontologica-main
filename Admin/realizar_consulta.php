@@ -363,7 +363,7 @@ if (!empty($_GET['id'])) {
           <span class="text-muted">Realizar Consulta</span>
         </div>
         <div class="small text-muted d-none d-sm-block">
-          Sesión: <strong><?php echo htmlspecialchars($row1['correo_eletronico'] ?? ''); ?></strong>
+          Usuario:  <strong><?php echo htmlspecialchars($row1['correo_eletronico'] ?? ''); ?></strong>
         </div>
       </div>
     </div>

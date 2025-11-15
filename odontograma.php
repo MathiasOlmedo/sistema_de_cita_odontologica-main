@@ -51,6 +51,9 @@ $SIDEBAR_ACTIVE = 'odontograma';
     --maxw:1600px;
     --radius:10px;
     --transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --success:#198754;
+    --warning:#ffc107;
+    --danger:#dc3545;
 }
 *{ box-sizing:border-box; margin:0; padding:0; }
 body {
@@ -180,7 +183,7 @@ body {
 .topbar{
     background:#fff;
     border-bottom:1px solid rgba(0,0,0,.06);
-    padding:1rem 0 1rem 0;
+    padding:1.25rem 0 1rem 0;
     margin-bottom:1.5rem;
     margin-left:-2rem;
     margin-right:-2rem;
@@ -188,6 +191,16 @@ body {
     padding-left:2rem;
     padding-right:2rem;
     box-shadow:0 2px 8px rgba(0,0,0,.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.topbar-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 .topbar h2{
     margin:0;
@@ -199,6 +212,18 @@ body {
     margin:0.25rem 0 0 0;
     color:var(--text-muted);
     font-size:0.95rem;
+}
+.paciente-badge {
+    background: var(--brand-50);
+    border: 1px solid var(--brand-100);
+    border-radius: var(--radius);
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.paciente-badge i {
+    color: var(--brand);
 }
 
 /* ===== Cards mejoradas ===== */
@@ -222,6 +247,7 @@ body {
     border-bottom:1px solid rgba(0,0,0,.06);
     display:flex;
     align-items:center;
+    justify-content: space-between;
     gap:0.75rem;
 }
 .card-header-custom h3{
@@ -247,7 +273,14 @@ body {
     padding:1.75rem;
 }
 
-/* ===== Odontograma ===== */
+/* ===== Odontograma mejorado ===== */
+.odontograma-container {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    margin-bottom: 1.5rem;
+}
 #odontograma {
     display: flex;
     flex-direction: column;
@@ -257,25 +290,29 @@ body {
 .filas-container{
     display:flex;
     flex-direction:column;
-    gap:1.5rem;
+    gap:2rem;
     width:100%;
 }
 .fila-label{
     text-align:center;
     font-weight:600;
     color:var(--brand);
-    font-size:0.95rem;
-    margin-bottom:0.5rem;
+    font-size:1rem;
+    margin-bottom:0.75rem;
+    padding: 0.5rem;
+    background: var(--brand-50);
+    border-radius: var(--radius);
 }
 .fila-dientes { 
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    padding:1rem;
+    gap: 1rem;
+    padding:1.5rem;
     background:linear-gradient(135deg, rgba(247,248,250,0.5) 0%, rgba(240,247,255,0.3) 100%);
     border-radius:var(--radius);
     border:1px dashed rgba(13,110,253,.15);
+    min-height: 120px;
 }
 .diente { 
     display: flex;
@@ -283,17 +320,37 @@ body {
     align-items: center;
     gap: 0.5rem;
     transition:var(--transition);
+    position: relative;
 }
 .diente img { 
-    width: 50px;
+    width: 55px;
     height: auto;
     cursor: pointer;
     transition:var(--transition);
     filter:drop-shadow(0 2px 4px rgba(0,0,0,.1));
 }
 .diente img:hover {
-    transform:scale(1.15);
-    filter:drop-shadow(0 4px 8px rgba(13,110,253,.3));
+    transform:scale(1.2);
+    filter:drop-shadow(0 4px 8px rgba(13,110,253,.4));
+}
+.diente-con-procedimiento img {
+    filter: brightness(0.9) sepia(0.3) hue-rotate(180deg) saturate(1.5);
+}
+.diente-con-procedimiento::after {
+    content: "✓";
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--success);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
 }
 .num-diente { 
     margin-top: 0px;
@@ -301,21 +358,23 @@ body {
 }
 .nombre-diente {
     display: inline-block;
-    padding: 4px 8px;
+    padding: 6px 10px;
     border: 1px solid rgba(13,110,253,.25);
     border-radius: var(--radius);
-    font-size: 11px;
+    font-size: 12px;
     background-color: var(--brand-50);
     color:var(--brand);
     font-weight:500;
     transition:var(--transition);
+    min-width: 100px;
 }
 .diente:hover .nombre-diente{
     background-color:var(--brand-100);
     border-color:var(--brand);
+    transform: translateY(-2px);
 }
 
-/* ===== Tabla procedimientos ===== */
+/* ===== Tabla procedimientos mejorada ===== */
 .tabla-card{
     background:#fff;
     border-radius:var(--radius);
@@ -332,6 +391,7 @@ body {
 #tablaProcedimientos{
     width:100%;
     margin-bottom:0;
+    border-collapse: collapse;
 }
 #tablaProcedimientos thead{
     background:linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%);
@@ -339,9 +399,10 @@ body {
 #tablaProcedimientos th{
     color:#fff;
     font-weight:600;
-    padding:1rem;
+    padding:1.25rem 1rem;
     text-align:center;
     border:0;
+    font-size: 0.9rem;
 }
 #tablaProcedimientos tbody tr{
     border-bottom:1px solid rgba(0,0,0,.06);
@@ -349,22 +410,59 @@ body {
 }
 #tablaProcedimientos tbody tr:hover{
     background-color:var(--brand-50);
+    transform: translateX(4px);
 }
 #tablaProcedimientos td{
     text-align:center;
-    padding:0.75rem 1rem;
+    padding:1rem;
     color:var(--text);
+    vertical-align: middle;
+}
+
+.btn-eliminar {
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.btn-eliminar:hover {
+    background: #c82333;
+    transform: scale(1.1);
 }
 
 .tabla-footer{
     padding:1.5rem 1.75rem;
     background:linear-gradient(135deg, #fff 0%, #fafbfc 100%);
     border-top:1px solid rgba(0,0,0,.06);
-    text-align:right;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 .tabla-footer strong{
-    font-size:1.1rem;
+    font-size:1.2rem;
     color:var(--brand);
+}
+.resumen-total {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.contador-procedimientos {
+    background: var(--brand-50);
+    color: var(--brand);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    border: 1px solid var(--brand-100);
 }
 
 /* ===== Botón Terminar ===== */
@@ -373,22 +471,39 @@ body {
     gap:1rem;
     justify-content:flex-end;
     margin-top:2rem;
+    flex-wrap: wrap;
 }
 #btnTerminar{
-    background:linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%);
+    background:linear-gradient(135deg, var(--success) 0%, #157347 100%);
     border:0;
     color:#fff;
     font-weight:600;
     padding:0.75rem 2rem;
     border-radius:var(--radius);
     transition:var(--transition);
-    box-shadow:0 4px 12px rgba(13,110,253,.3);
+    box-shadow:0 4px 12px rgba(25,135,84,.3);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 #btnTerminar:hover{
     transform:translateY(-2px);
-    box-shadow:0 6px 20px rgba(13,110,253,.4);
+    box-shadow:0 6px 20px rgba(25,135,84,.4);
     color:#fff;
     text-decoration:none;
+}
+#btnCambiarPaciente {
+    background: var(--warning);
+    border: 0;
+    color: #000;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    transition: var(--transition);
+}
+#btnCambiarPaciente:hover {
+    background: #e0a800;
+    transform: translateY(-2px);
 }
 
 /* ===== Modales mejorados ===== */
@@ -401,19 +516,27 @@ body {
     background:linear-gradient(135deg, var(--brand-50) 0%, #fff 100%);
     border-bottom:1px solid rgba(0,0,0,.06);
     padding:1.25rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 .modal-header h5{
     color:var(--brand);
     font-weight:700;
+    margin: 0;
 }
 .modal-body{
     padding:1.75rem;
+}
+.form-group {
+    margin-bottom: 1.25rem;
 }
 .form-group label{
     font-weight:600;
     color:var(--text);
     margin-bottom:0.5rem;
     font-size:0.95rem;
+    display: block;
 }
 .form-control{
     border:1px solid rgba(0,0,0,.1);
@@ -431,6 +554,9 @@ body {
     border-top:1px solid rgba(0,0,0,.06);
     padding:1.25rem 1.75rem;
     background:#f5f7fa;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
 }
 
 /* ===== Estilos específicos para filtros ===== */
@@ -466,24 +592,82 @@ body {
     margin-bottom: 1rem;
 }
 
+/* ===== Mejoras visuales adicionales ===== */
+.estadisticas-rapidas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.estadistica-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    border: 1px solid rgba(0,0,0,.06);
+    text-align: center;
+    transition: var(--transition);
+}
+.estadistica-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+.estadistica-valor {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brand);
+    margin-bottom: 0.5rem;
+}
+.estadistica-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
 /* ===== Responsive ===== */
 @media (max-width:992px){
     :root{ --sidebar-w:220px; }
     .sidebar{ padding:0.75rem 0.5rem; }
     .main{ padding:1.5rem 1rem; }
-    .topbar{ margin-left:-1rem; margin-right:-1rem; padding-left:1rem; padding-right:1rem; }
+    .topbar{ 
+        margin-left:-1rem; margin-right:-1rem; 
+        padding-left:1rem; padding-right:1rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .fila-dientes { padding:1rem; gap:0.75rem; }
+    .diente img { width: 50px; }
+    .tabla-footer {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
 }
 @media (max-width:575.98px){
     :root{ --sidebar-w:200px; }
     .main{ padding:1rem 0.75rem; }
-    .topbar{ margin-left:-0.75rem; margin-right:-0.75rem; padding-left:0.75rem; padding-right:0.75rem; }
+    .topbar{ 
+        margin-left:-0.75rem; margin-right:-0.75rem; 
+        padding-left:0.75rem; padding-right:0.75rem;
+    }
     .fila-dientes { padding:0.75rem; gap:0.5rem; }
     .card-header-custom{ padding:1rem 1.25rem; }
     .card-body-custom{ padding:1.25rem; }
-    .diente img { width: 40px; }
-    .nombre-diente { font-size: 10px; padding:3px 6px; }
-    .btn-terminar-container{ flex-direction:column; }
-    #btnTerminar{ width:100%; }
+    .diente img { width: 45px; }
+    .nombre-diente { 
+        font-size: 10px; 
+        padding:4px 8px;
+        min-width: 80px;
+    }
+    .btn-terminar-container{ 
+        flex-direction:column;
+        align-items: stretch;
+    }
+    #btnTerminar, #btnCambiarPaciente { 
+        width:100%;
+        justify-content: center;
+    }
+    .estadisticas-rapidas {
+        grid-template-columns: 1fr;
+    }
     
     /* Ajustes específicos para filtros en móviles */
     .row.g-2.mb-3 .col-md-3 {
@@ -528,16 +712,46 @@ body {
 <div class="main">
     <!-- Topbar -->
     <div class="topbar">
-        <h2><i class="fas fa-tooth"></i> Odontograma</h2>
-        <p>Dr. <?= htmlspecialchars($nombreDoctor) ?></p>
+        <div class="topbar-content">
+            <div>
+                <h2><i class="fas fa-tooth"></i> Odontograma</h2>
+                <p>Dr. <?= htmlspecialchars($nombreDoctor) ?></p>
+            </div>
+        </div>
+        <div id="pacienteSelectedBadge" style="display:none;" class="paciente-badge">
+            <i class="fas fa-user-injured"></i>
+            <div>
+                <strong>Paciente:</strong>
+                <span id="pacienteNombre" class="ms-1"></span>
+            </div>
+        </div>
     </div>
 
     <div class="container">
+        <!-- Estadísticas rápidas -->
+        <div class="estadisticas-rapidas" id="estadisticasContainer" style="display:none;">
+            <div class="estadistica-card">
+                <div class="estadistica-valor" id="totalProcedimientos">0</div>
+                <div class="estadistica-label">Procedimientos</div>
+            </div>
+            <div class="estadistica-card">
+                <div class="estadistica-valor" id="totalDientes">0</div>
+                <div class="estadistica-label">Dientes tratados</div>
+            </div>
+            <div class="estadistica-card">
+                <div class="estadistica-valor">Gs. <span id="totalResumen">0</span></div>
+                <div class="estadistica-label">Valor total</div>
+            </div>
+        </div>
+
         <!-- Tarjeta Odontograma -->
-        <div class="card-section" id="odontogramCard" style="display:none;">
+        <div class="odontograma-container" id="odontogramCard" style="display:none;">
             <div class="card-header-custom">
-                <i class="fas fa-smile"></i>
-                <h3>Gráfico Dental</h3>
+                <div>
+                    <i class="fas fa-smile"></i>
+                    <h3>Gráfico Dental</h3>
+                </div>
+                <small class="text-muted">Haz clic en un diente para agregar procedimientos</small>
             </div>
             <div class="card-body-custom">
                 <div id="odontograma">
@@ -554,8 +768,8 @@ body {
                                     "25"=>"Premolar 2 sup","26"=>"Molar 1 sup","27"=>"Molar 2 sup","28"=>"Molar 3 sup"
                                 ];
                                 foreach($superiores as $diente=>$nombre){
-                                    echo '<div class="diente">';
-                                    echo '<img src="src/img/dentadura-sup-'.$diente.'.png" alt="'.$nombre.'" class="odontograma-btn" data-diente="'.$diente.'">';
+                                    echo '<div class="diente" id="diente-'.$diente.'">';
+                                    echo '<img src="src/img/dentadura-sup-'.$diente.'.png" alt="'.$nombre.'" class="odontograma-btn" data-diente="'.$diente.'" data-nombre="'.$nombre.'">';
                                     echo '<div class="num-diente"><span class="nombre-diente">'.$nombre.'</span></div>';
                                     echo '</div>';
                                 }
@@ -575,8 +789,8 @@ body {
                                     "35"=>"Premolar 2 inf","36"=>"Molar 1 inf","37"=>"Molar 2 inf","38"=>"Molar 3 inf"
                                 ];
                                 foreach($inferiores as $diente=>$nombre){
-                                    echo '<div class="diente">';
-                                    echo '<img src="src/img/dentadura-inf-'.$diente.'.png" alt="'.$nombre.'" class="odontograma-btn" data-diente="'.$diente.'">';
+                                    echo '<div class="diente" id="diente-'.$diente.'">';
+                                    echo '<img src="src/img/dentadura-inf-'.$diente.'.png" alt="'.$nombre.'" class="odontograma-btn" data-diente="'.$diente.'" data-nombre="'.$nombre.'">';
                                     echo '<div class="num-diente"><span class="nombre-diente">'.$nombre.'</span></div>';
                                     echo '</div>';
                                 }
@@ -590,27 +804,52 @@ body {
 
         <!-- Tarjeta Procedimientos -->
         <div class="tabla-card" id="tablaProcedimientosCard" style="display:none;">
-            <table id="tablaProcedimientos">
-                <thead>
-                    <tr>
-                        <th>Diente</th>
-                        <th>Lado</th>
-                        <th>Procedimiento</th>
-                        <th>Precio</th>
-                        <th>Observación</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div class="card-header-custom">
+                <div>
+                    <i class="fas fa-list-check"></i>
+                    <h3>Procedimientos Agregados</h3>
+                </div>
+                <small class="text-muted">Lista de todos los procedimientos programados</small>
+            </div>
+            <div class="card-body-custom">
+                <div class="table-responsive">
+                    <table id="tablaProcedimientos">
+                        <thead>
+                            <tr>
+                                <th>Diente</th>
+                                <th>Nombre</th>
+                                <th>Lado</th>
+                                <th>Procedimiento</th>
+                                <th>Precio</th>
+                                <th>Observación</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
             <div class="tabla-footer">
+                <div class="resumen-total">
+                    <div class="contador-procedimientos">
+                        <span id="contadorProcedimientos">0</span> procedimientos
+                    </div>
+                    <div class="contador-procedimientos">
+                        <span id="contadorDientes">0</span> dientes
+                    </div>
+                </div>
                 <strong>Total: Gs. <span id="totalPrecio">0</span></strong>
             </div>
         </div>
 
-        <!-- Botón Terminar -->
+        <!-- Botones de acción -->
         <div class="btn-terminar-container">
-            <button id="btnTerminar" class="btn btn-primary" style="display:none;">Terminar y Generar Presupuesto</button>
+            <button id="btnCambiarPaciente" class="btn" style="display:none;">
+                <i class="fas fa-exchange-alt"></i> Cambiar Paciente
+            </button>
+            <button id="btnTerminar" class="btn btn-success" style="display:none;">
+                <i class="fas fa-file-pdf"></i> Generar Presupuesto
+            </button>
         </div>
         
         <!-- Toast container -->
@@ -625,14 +864,15 @@ body {
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5>Procedimiento para el diente <span id="dienteSeleccionado"></span></h5>
+        <h5><i class="fas fa-tooth"></i> Procedimiento para <span id="dienteSeleccionado"></span></h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
         <form id="formProcedimiento">
           <input type="hidden" id="dienteId">
+          <input type="hidden" id="dienteNombre">
           <div class="form-group">
-            <label>Lado</label>
+            <label><i class="fas fa-compass"></i> Lado del diente</label>
             <select class="form-control" id="lado">
               <option value="Frontal">Frontal</option>
               <option value="Lateral">Lateral</option>
@@ -640,32 +880,40 @@ body {
               <option value="Derecho">Derecho</option>
               <option value="Anterior">Anterior</option>
               <option value="Posterior">Posterior</option>
+              <option value="Superior">Superior</option>
+              <option value="Inferior">Inferior</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Procedimiento</label>
+            <label><i class="fas fa-stethoscope"></i> Tipo de procedimiento</label>
             <select class="form-control" id="procedimiento">
               <option value="Amalgama">Amalgama</option>
-              <option value="Caries">Caries</option>
+              <option value="Caries">Tratamiento de caries</option>
               <option value="Endodoncia">Endodoncia</option>
-              <option value="Resina">Resina</option>
-              <option value="Implante">Implante</option>
-              <option value="Sellante">Sellante</option>
+              <option value="Resina">Resina composite</option>
+              <option value="Implante">Implante dental</option>
+              <option value="Sellante">Sellante dental</option>
               <option value="Corona">Corona</option>
-              <option value="Normal">Normal</option>
+              <option value="Limpieza">Limpieza dental</option>
+              <option value="Extracción">Extracción</option>
+              <option value="Blanqueamiento">Blanqueamiento</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Precio</label>
-            <input type="number" class="form-control" id="precio" step="0.01" required>
+            <label><i class="fas fa-tag"></i> Precio (Guaraníes)</label>
+            <input type="number" class="form-control" id="precio" step="1000" min="0" required placeholder="Ingrese el precio en Gs.">
           </div>
           <div class="form-group">
-            <label>Observación</label>
-            <textarea class="form-control" id="observacion" rows="3"></textarea>
+            <label><i class="fas fa-notes-medical"></i> Observaciones</label>
+            <textarea class="form-control" id="observacion" rows="3" placeholder="Detalles adicionales del procedimiento..."></textarea>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Agregar</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Agregar Procedimiento
+            </button>
           </div>
         </form>
       </div>
@@ -686,16 +934,16 @@ body {
         <div class="row g-2 mb-3">
           <div class="col-md-6">
             <div class="form-group">
-              <label for="buscarPaciente">Buscar</label>
-              <input type="text" id="buscarPaciente" class="form-control" placeholder="Nombre, correo o teléfono">
+              <label for="buscarPaciente"><i class="fas fa-search"></i> Buscar paciente</label>
+              <input type="text" id="buscarPaciente" class="form-control" placeholder="Nombre, apellido, correo o teléfono...">
             </div>
           </div>
 
           <div class="col-md-3">
             <div class="form-group">
-              <label for="filtroSexo">Sexo</label>
+              <label for="filtroSexo"><i class="fas fa-venus-mars"></i> Sexo</label>
               <select id="filtroSexo" class="form-control">
-                <option value="">Todos</option>
+                <option value="">Todos los sexos</option>
                 <option value="Femenino">Femenino</option>
                 <option value="Masculino">Masculino</option>
               </select>
@@ -705,7 +953,7 @@ body {
           <div class="col-md-3">
             <div class="form-group">
               <label>&nbsp;</label>
-              <button id="btnBuscarPac" class="btn btn-outline-primary w-100">
+              <button id="btnBuscarPac" class="btn btn-primary w-100">
                 <i class="fa fa-search"></i> Buscar
               </button>
             </div>
@@ -713,11 +961,11 @@ body {
         </div>
 
         <div class="table-responsive">
-          <table class="table table-sm table-hover" id="pacientesTable">
-            <thead>
+          <table class="table table-hover" id="pacientesTable">
+            <thead class="table-light">
               <tr>
-                <th>Nombre</th>
-                <th>Correo</th>
+                <th>Nombre completo</th>
+                <th>Correo electrónico</th>
                 <th>Teléfono</th>
                 <th>Sexo</th>
                 <th>Fecha Nac.</th>
@@ -728,7 +976,9 @@ body {
           </table>
         </div>
 
-        <small id="pacInfo" class="text-muted"></small>
+        <div class="text-center mt-3">
+          <small class="text-muted" id="pacInfo">Selecciona un paciente para comenzar con el odontograma</small>
+        </div>
       </div>
     </div>
   </div>
@@ -738,6 +988,7 @@ body {
 $(function(){
   let selectedPaciente = null;
   let procedimientosArray = [];
+  let dientesProcedimientos = {}; // Para rastrear dientes con procedimientos
 
   // Mostrar toast Bootstrap 5
   function showToast(msg, type='info'){
@@ -750,9 +1001,38 @@ $(function(){
       </div>`;
     const $toast = $(toastHtml);
     $('#toastContainer').append($toast);
-    const toast = new bootstrap.Toast($toast[0], { delay: 3000 });
+    const toast = new bootstrap.Toast($toast[0], { delay: 4000 });
     toast.show();
     $toast.on('hidden.bs.toast', function(){ $toast.remove(); });
+  }
+
+  // Actualizar estadísticas
+  function actualizarEstadisticas() {
+    const totalProcedimientos = procedimientosArray.length;
+    const dientesUnicos = new Set(procedimientosArray.map(p => p.diente)).size;
+    const totalPrecio = procedimientosArray.reduce((sum, p) => sum + p.precio, 0);
+    
+    $('#totalProcedimientos').text(totalProcedimientos);
+    $('#totalDientes').text(dientesUnicos);
+    $('#totalResumen').text(formatearPrecio(totalPrecio));
+    $('#contadorProcedimientos').text(totalProcedimientos);
+    $('#contadorDientes').text(dientesUnicos);
+  }
+
+  // Formatear precio
+  function formatearPrecio(precio) {
+    return precio.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  // Actualizar estado visual de dientes
+  function actualizarDientesVisual() {
+    // Resetear todos los dientes
+    $('.diente').removeClass('diente-con-procedimiento');
+    
+    // Marcar dientes con procedimientos
+    Object.keys(dientesProcedimientos).forEach(dienteId => {
+      $(`#diente-${dienteId}`).addClass('diente-con-procedimiento');
+    });
   }
 
   // --- Cargar pacientes ---
@@ -760,20 +1040,22 @@ $(function(){
     const $tb = $('#pacientesTable tbody');
     $tb.empty();
     if(!items || items.length===0){
-      $tb.append('<tr><td colspan="6" class="text-center text-muted">No se encontraron pacientes</td></tr>');
+      $tb.append('<tr><td colspan="6" class="text-center text-muted py-4">No se encontraron pacientes con los criterios de búsqueda</td></tr>');
       return;
     }
     items.forEach(p=>{
       const nombre = (p.nombre||'') + ' ' + (p.apellido||'');
       const row = $('<tr>');
-      row.append($('<td>').text(nombre));
+      row.append($('<td>').html(`<strong>${nombre}</strong>`));
       row.append($('<td>').text(p.correo_electronico||''));
       row.append($('<td>').text(p.telefono||''));
-      row.append($('<td>').text(p.sexo||''));
+      row.append($('<td>').html(`<span class="badge bg-light text-dark">${p.sexo||''}</span>`));
       row.append($('<td>').text(p.fecha_nacimiento||''));
-      const btn = $(`<button class="btn btn-sm btn-primary btnSelectPaciente" 
+      const btn = $(`<button class="btn btn-success btn-sm btnSelectPaciente" 
                        data-id="${p.id_paciente}" data-nombre="${nombre}" 
-                       data-correo="${p.correo_electronico||''}" data-telefono="${p.telefono||''}">Seleccionar</button>`);
+                       data-correo="${p.correo_electronico||''}" data-telefono="${p.telefono||''}">
+                       <i class="fas fa-check"></i> Seleccionar
+                    </button>`);
       row.append($('<td>').append(btn));
       $tb.append(row);
     });
@@ -785,7 +1067,10 @@ $(function(){
         const r = (typeof res==='object')? res : JSON.parse(res||'{}');
         if(r.status==='ok' && Array.isArray(r.items)) renderPacientes(r.items);
         else renderPacientes([]);
-      }).fail(function(){ renderPacientes([]); });
+      }).fail(function(){ 
+        renderPacientes([]);
+        showToast('Error al cargar pacientes', 'danger');
+      });
   }
 
   function debounce(fn, delay){ let t = null; return function(){ clearTimeout(t); const args = arguments; t = setTimeout(()=>fn.apply(this,args),delay); } }
@@ -805,18 +1090,30 @@ $(function(){
     $('#seleccionarPacienteModal').modal('hide');
 
     // Mostrar UI
-    $('#odontogramCard, #tablaProcedimientosCard, #btnTerminar').fadeIn();
-    $('#pacienteSelectedBadge').remove();
-    $('.topbar').append(`<div id="pacienteSelectedBadge" class="ms-auto"><strong>Paciente:</strong> <span class="badge bg-primary">${selectedPaciente.nombre}</span></div>`);
-    showToast('Paciente seleccionado: ' + selectedPaciente.nombre, 'success');
+    $('#estadisticasContainer, #odontogramCard, #tablaProcedimientosCard, #btnTerminar, #btnCambiarPaciente').fadeIn();
+    $('#pacienteSelectedBadge').fadeIn();
+    $('#pacienteNombre').text(selectedPaciente.nombre);
+    
+    showToast(`Paciente <strong>${selectedPaciente.nombre}</strong> seleccionado correctamente`, 'success');
+  });
+
+  // Cambiar paciente
+  $('#btnCambiarPaciente').on('click', function(){
+    $('#seleccionarPacienteModal').modal('show');
   });
 
   // Abrir modal procedimiento
   $(document).on('click', '.odontograma-btn', function(){
-    if(!selectedPaciente){ showToast('Selecciona primero un paciente.','warning'); $('#seleccionarPacienteModal').modal('show'); return; }
+    if(!selectedPaciente){ 
+      showToast('Selecciona primero un paciente','warning'); 
+      $('#seleccionarPacienteModal').modal('show'); 
+      return; 
+    }
     const diente = $(this).data('diente');
-    $('#dienteSeleccionado').text(diente);
+    const nombre = $(this).data('nombre');
+    $('#dienteSeleccionado').text(`${diente} - ${nombre}`);
     $('#dienteId').val(diente);
+    $('#dienteNombre').val(nombre);
     $('#procedimientoModal').modal('show');
   });
 
@@ -828,12 +1125,36 @@ $(function(){
     const proc = $('#procedimiento').val();
     const precio = parseFloat($('#precio').val()||0);
     const obs = $('#observacion').val();
+    const nombre = $('#dienteNombre').val();
 
-    procedimientosArray.push({diente, lado, procedimiento:proc, precio, observacion:obs});
+    if (precio <= 0) {
+      showToast('El precio debe ser mayor a cero', 'warning');
+      return;
+    }
+
+    const procedimiento = {
+      diente, 
+      nombre,
+      lado, 
+      procedimiento: proc, 
+      precio, 
+      observacion: obs,
+      timestamp: new Date().getTime()
+    };
+
+    procedimientosArray.push(procedimiento);
+    
+    // Actualizar registro de dientes
+    if (!dientesProcedimientos[diente]) {
+      dientesProcedimientos[diente] = [];
+    }
+    dientesProcedimientos[diente].push(procedimiento);
+
     renderTablaProcedimientos();
+    actualizarDientesVisual();
     $('#procedimientoModal').modal('hide');
     $('#formProcedimiento')[0].reset();
-    showToast('Procedimiento agregado.','success');
+    showToast(`Procedimiento agregado al diente ${diente}`, 'success');
   });
 
   // Renderizar tabla
@@ -841,34 +1162,77 @@ $(function(){
     const $tbody = $('#tablaProcedimientos tbody');
     $tbody.empty();
     let total = 0;
+    
     procedimientosArray.forEach((p,i)=>{
       total += p.precio;
       const row = $(`
         <tr>
-          <td>${p.diente}</td>
-          <td>${p.lado}</td>
+          <td><strong>${p.diente}</strong></td>
+          <td><small class="text-muted">${p.nombre}</small></td>
+          <td><span class="badge bg-light text-dark">${p.lado}</span></td>
           <td>${p.procedimiento}</td>
-          <td>${p.precio.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-          <td>${$('<div>').text(p.observacion).html()}</td>
-          <td><button class="btn btn-sm btn-danger btnEliminar" data-index="${i}">&times;</button></td>
+          <td><strong>Gs. ${formatearPrecio(p.precio)}</strong></td>
+          <td><small>${$('<div>').text(p.observacion).html() || '-'}</small></td>
+          <td>
+            <button class="btn-eliminar btnEliminar" data-index="${i}" title="Eliminar procedimiento">
+              <i class="fas fa-times"></i>
+            </button>
+          </td>
         </tr>`);
       $tbody.append(row);
     });
-    $('#totalPrecio').text(total.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, "."));
+    
+    $('#totalPrecio').text(formatearPrecio(total));
+    actualizarEstadisticas();
+    
+    if (procedimientosArray.length === 0) {
+      $tbody.append('<tr><td colspan="7" class="text-center text-muted py-4">No hay procedimientos agregados</td></tr>');
+    }
   }
 
   // Eliminar procedimiento
   $(document).on('click','.btnEliminar', function(){
     const index = $(this).data('index');
-    procedimientosArray.splice(index,1);
-    renderTablaProcedimientos();
-    showToast('Procedimiento eliminado.','info');
+    const procedimiento = procedimientosArray[index];
+    
+    if (confirm(`¿Estás seguro de que deseas eliminar el procedimiento del diente ${procedimiento.diente}?`)) {
+      procedimientosArray.splice(index,1);
+      
+      // Actualizar registro de dientes
+      const dienteProcedimientos = dientesProcedimientos[procedimiento.diente];
+      if (dienteProcedimientos) {
+        const idx = dienteProcedimientos.findIndex(p => p.timestamp === procedimiento.timestamp);
+        if (idx !== -1) {
+          dienteProcedimientos.splice(idx, 1);
+          if (dienteProcedimientos.length === 0) {
+            delete dientesProcedimientos[procedimiento.diente];
+          }
+        }
+      }
+      
+      renderTablaProcedimientos();
+      actualizarDientesVisual();
+      showToast('Procedimiento eliminado correctamente', 'info');
+    }
   });
 
   // Generar presupuesto
   $('#btnTerminar').on('click', function(){
-    if(!selectedPaciente){ showToast('Selecciona primero un paciente.','warning'); return; }
-    if(procedimientosArray.length===0){ showToast('Agrega al menos un procedimiento.','warning'); return; }
+    if(!selectedPaciente){ 
+      showToast('Selecciona primero un paciente.','warning'); 
+      return; 
+    }
+    if(procedimientosArray.length===0){ 
+      showToast('Agrega al menos un procedimiento.','warning'); 
+      return; 
+    }
+
+    // Mostrar confirmación
+    if (!confirm(`¿Generar presupuesto para ${selectedPaciente.nombre} con ${procedimientosArray.length} procedimientos?`)) {
+      return;
+    }
+
+    $('#btnTerminar').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generando...');
 
     $.ajax({
       url: 'php/generar_presupuesto.php',
@@ -881,20 +1245,56 @@ $(function(){
         procedimientos: JSON.stringify(procedimientosArray)
       },
       success: function(res){
+        $('#btnTerminar').prop('disabled', false).html('<i class="fas fa-file-pdf"></i> Generar Presupuesto');
+        
         const r = (typeof res==='object')? res : JSON.parse(res||'{}');
         if(r.status==='ok'){
-          showToast('Presupuesto generado correctamente.','success');
-          if(r.pdf_url) window.open(r.pdf_url,'_blank');
-          if(r.redirect) window.location.href = r.redirect;
-        } else { showToast('Error: '+(r.message||'Error desconocido'),'danger'); }
+          showToast('Presupuesto generado correctamente','success');
+          if(r.pdf_url) {
+            setTimeout(() => {
+              window.open(r.pdf_url,'_blank');
+            }, 1000);
+          }
+          if(r.redirect) {
+            setTimeout(() => {
+              window.location.href = r.redirect;
+            }, 2000);
+          }
+        } else { 
+          showToast('Error: '+(r.message||'Error desconocido'),'danger'); 
+        }
       },
-      error: function(){ showToast('Error al generar presupuesto.','danger'); }
+      error: function(){ 
+        $('#btnTerminar').prop('disabled', false).html('<i class="fas fa-file-pdf"></i> Generar Presupuesto');
+        showToast('Error al generar presupuesto.','danger'); 
+      }
     });
   });
 
-  // Inicial
+  // Inicialización
   $('#seleccionarPacienteModal').modal('show');
   cargarPacientes();
+  
+  // Precios sugeridos al cambiar procedimiento
+  $('#procedimiento').on('change', function(){
+    const preciosSugeridos = {
+      'Amalgama': 150000,
+      'Caries': 200000,
+      'Endodoncia': 500000,
+      'Resina': 180000,
+      'Implante': 1500000,
+      'Sellante': 80000,
+      'Corona': 450000,
+      'Limpieza': 120000,
+      'Extracción': 100000,
+      'Blanqueamiento': 300000
+    };
+    
+    const procedimiento = $(this).val();
+    if (preciosSugeridos[procedimiento]) {
+      $('#precio').val(preciosSugeridos[procedimiento]);
+    }
+  });
 });
 </script>
 

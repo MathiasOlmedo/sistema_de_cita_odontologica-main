@@ -366,7 +366,7 @@ $SIDEBAR_ACTIVE = 'reportes'; // citas | calendario | odontograma | presupuestos
           <span class="text-muted">Reportes</span>
         </div>
         <div class="d-flex align-items-center gap-2">
-          <span class="small text-muted">Sesión:</span>
+          <span class="small text-muted">Usuario: </span>
           <strong><?php echo htmlspecialchars($doctor['correo_eletronico'] ?? ''); ?></strong>
         </div>
       </div>
