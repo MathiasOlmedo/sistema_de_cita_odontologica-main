@@ -214,7 +214,7 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
       box-shadow:0 2px 8px rgba(0,0,0,.03) !important;
     }
 
-    /* Tarjeta del calendario expandida */
+    /* Tarjeta del calendario con diseño mejorado */
     .calendar-card{
       background:#fff !important; 
       border:1px solid rgba(0,0,0,.06) !important;
@@ -228,9 +228,10 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
       transition:var(--transition) !important;
     }
     .calendar-card:hover{
-      box-shadow:0 8px 24px rgba(0,0,0,.12);
-      transform:translateY(-2px);
+      box-shadow:0 8px 24px rgba(0,0,0,.12) !important;
+      transform:translateY(-2px) !important;
     }
+
     .calendar-header{
       padding:1.25rem 1.75rem; 
       background:linear-gradient(135deg, #fff 0%, #fafbfc 100%);
@@ -246,7 +247,9 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
       color:var(--brand);
       transition:var(--transition);
     }
-    .calendar-card:hover .calendar-title{ color:var(--brand-hover); }
+    .calendar-card:hover .calendar-title{ 
+      color:var(--brand-hover);
+    }
 
     .calendar-wrapper{ 
       flex:1 1 auto; 
@@ -281,17 +284,25 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
       box-shadow:none !important;
       padding:.5rem .75rem !important;
       transition:var(--transition) !important;
+      cursor:pointer !important;
     }
     .fc-button:hover{
       background:var(--brand-100) !important;
-      transform:translateY(-2px);
+      transform:translateY(-2px) !important;
       box-shadow:0 4px 8px rgba(13,110,253,.2) !important;
     }
     .fc-state-active, .fc-button:focus{
       outline:none !important; 
       box-shadow:0 0 0 .15rem rgba(13,110,253,.15) !important;
+      background:linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%) !important;
+      color:#fff !important;
     }
-    .fc-day-grid-event .fc-content{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .fc-day-grid-event .fc-content{ 
+      white-space:nowrap; 
+      overflow:hidden; 
+      text-overflow:ellipsis;
+      padding:2px 4px;
+    }
 
     /* Responsive mejorado */
     @media (max-width:992px){
@@ -339,7 +350,7 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
         editable: false,
         eventLimit: true,
 
-        /* Altura real al contenedor, sin “zoom” */
+        /* Altura real al contenedor, sin "zoom" */
         height: 'parent',          // usa la altura de .calendar-wrapper
         contentHeight: 'auto',
         handleWindowResize: true,

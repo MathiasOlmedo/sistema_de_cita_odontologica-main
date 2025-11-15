@@ -1,2 +1,70 @@
+# Activar motor de reescritura
+
 RewriteEngine On
+
+# -----------------------------------------
+
+# Establecer la ruta base automáticamente
+
+# (útil si tu dominio apunta a una carpeta
+
+# profunda como /home/tomardosmas/home/...)
+
+# -----------------------------------------
+
+RewriteBase /
+
+# -----------------------------------------
+
+# Redirigir la raíz al archivo principal
+
+# Ej: dominio.com -> pagina.php
+
+# -----------------------------------------
+
 RewriteRule ^$ pagina.php [L]
+
+# -----------------------------------------
+
+# Redirigir URLs amigables a PHP
+
+# Ej: dominio.com/productos/23 -> productos.php?id=23
+
+# (Opcional, borrá si no lo usás)
+
+# -----------------------------------------
+
+# RewriteRule ^productos/([0-9]+)/?$ productos.php?id=$1 [L,QSA]
+
+# -----------------------------------------
+
+# Manejo de www y https (elige una versión)
+
+# -----------------------------------------
+
+# Forzar HTTPS (opcional)
+
+# RewriteCond %{HTTPS} !=on
+
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Forzar sin www (opcional)
+
+# RewriteCond %{HTTP_HOST} ^www\.(.\*)$ [NC]
+
+# RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
+# -----------------------------------------
+
+# Proteger archivos sensibles
+
+# -----------------------------------------
+
+<FilesMatch "\.(env|ini|log|sql|bak)$">
+Order allow,deny
+Deny from all
+</FilesMatch>
+
+# Desactivar listado de directorios
+
+Options -Indexes
