@@ -20,13 +20,14 @@ try {
             $id = filter_var($_POST['id'], FILTER_SANITIZE_NUMBER_INT);
             $nombre = filter_var($_POST['name'], FILTER_SANITIZE_STRING);  //para filtrar la data
             $apellido = filter_var($_POST['apellido'], FILTER_SANITIZE_STRING);  //para filtrar la data
+            $cedula = filter_var($_POST['cedula'], FILTER_SANITIZE_STRING);
             $telefono = filter_var($_POST['cell'], FILTER_SANITIZE_STRING);  //para filtrar la data
             $sexo = filter_var($_POST['sexo'], FILTER_SANITIZE_STRING);  //para filtrar la data
             $fecha = filter_var($_POST['nacimiento'], FILTER_SANITIZE_STRING);  //para filtrar la data
             $correo = filter_var($_POST['correo'], FILTER_SANITIZE_STRING);  //para filtrar la data
             $clave = filter_var($_POST['clave'], FILTER_SANITIZE_STRING);  //para filtrar la data
 
-            $query = "UPDATE `pacientes` SET `nombre` = '$nombre', `apellido` = '$apellido', `telefono` = '$telefono',  `sexo` = '$sexo',  `fecha_nacimiento` = '$fecha',  `correo_electronico` = '$correo',  `clave` = '$clave'    WHERE `id_paciente` = '$id'"; //para actualizar
+            $query = "UPDATE `pacientes` SET `nombre` = '$nombre', `apellido` = '$apellido', `cedula` = '$cedula', `telefono` = '$telefono',  `sexo` = '$sexo',  `fecha_nacimiento` = '$fecha',  `correo_electronico` = '$correo',  `clave` = '$clave'    WHERE `id_paciente` = '$id'"; //para actualizar
 
 
             $resultado = mysqli_query($link, $query);

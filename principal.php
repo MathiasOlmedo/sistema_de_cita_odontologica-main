@@ -335,7 +335,11 @@ if ($stmt = $link->prepare($sqlCitas)) {
               <label for="lastname">Apellido</label>
               <input type="text" class="form-control" id="lastname" name="lastname" readonly value="<?php echo $row['apellido']; ?>">
             </div>
-
+               <div class="row">
+               <div class="col-sm-3"><h5 class="mb-0">Cédula</h5></div>
+               <div class="col-sm-9 text-secondary"><?php echo $row['cedula']; ?></div>
+               </div>
+               <hr>
             <div class="col-md-12 col-sm-12">
               <label for="email">Correo Electrónico</label>
               <input type="email" class="form-control" id="email" name="email" readonly value="<?php echo $row['correo_electronico']; ?>">
@@ -525,6 +529,12 @@ $(document).ready(function() {
                                              <div class="col-sm-9 text-secondary"><?php echo $row['apellido']; ?></div>
                                         </div>
                                         <hr>
+                                        <div class="row">
+    <div class="col-sm-3"><h5 class="mb-0">Cédula</h5></div>
+    <div class="col-sm-9 text-secondary"><?php echo $row['cedula']; ?></div>
+</div>
+<hr>
+<hr>
                                         <div class="row">
                                              <div class="col-sm-3"><h5 class="mb-0"> Sexo</h5></div>
                                              <div class="col-sm-9 text-secondary"><?php echo $row['sexo']; ?></div>

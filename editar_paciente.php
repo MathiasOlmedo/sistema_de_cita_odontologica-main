@@ -78,7 +78,10 @@ if (isset($_SESSION['id_paciente'])) {
                     <label for="last-name">Apellido</label>
                     <input type="text" class="form-control" value="  <?php echo $row['apellido'] ?>" name="apellido" placeholder="Apellido" id="last-name">
                 </div>
-
+                <div class="form-group">
+                <label for="cedula">Cédula</label>
+                    <input type="text" class="form-control" value="<?php echo $row['cedula'] ?>" name="cedula" placeholder="Cédula" id="cedula">
+                </div>
                 <div class="form-group">
                     <label for="number">Teléfono</label>
                     <input type="text" class="form-control" value="<?php echo $row['telefono'] ?>" name="cell" placeholder="Teléfono" id="number">

@@ -47,7 +47,7 @@ $pacientes = mysqli_query($link, "SELECT * FROM pacientes WHERE $where");
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>ID</th><th>Nombre</th><th>Apellido</th><th>Teléfono</th>
+          <th>ID</th><th>Nombre</th><th>Apellido</th><th>Cédula</th><th>Teléfono</th>
           <th>Sexo</th><th>Correo</th><th>Clave</th><th>Acciones</th>
         </tr>
       </thead>
@@ -57,6 +57,7 @@ $pacientes = mysqli_query($link, "SELECT * FROM pacientes WHERE $where");
           <td><?= $p['id_paciente'] ?></td>
           <td><?= $p['nombre'] ?></td>
           <td><?= $p['apellido'] ?></td>
+          <td><?= $p['cedula'] ?></td>
           <td><?= $p['telefono'] ?></td>
           <td><?= $p['sexo'] ?></td>
           <td><?= $p['correo_electronico'] ?></td>
@@ -67,6 +68,7 @@ $pacientes = mysqli_query($link, "SELECT * FROM pacientes WHERE $where");
               data-id="<?= $p['id_paciente'] ?>"
               data-nombre="<?= $p['nombre'] ?>"
               data-apellido="<?= $p['apellido'] ?>"
+              data-cedula="<?= $p['cedula'] ?>"
               data-telefono="<?= $p['telefono'] ?>"
               data-sexo="<?= $p['sexo'] ?>"
               data-correo="<?= $p['correo_electronico'] ?>"
@@ -101,6 +103,7 @@ $pacientes = mysqli_query($link, "SELECT * FROM pacientes WHERE $where");
       <div class="modal-body">
         <input type="text" name="nombre" class="form-control mb-2" placeholder="Nombre" required>
         <input type="text" name="apellido" class="form-control mb-2" placeholder="Apellido" required>
+        <input type="text" name="cedula" class="form-control mb-2" placeholder="Cédula" required>
         <input type="text" name="telefono" class="form-control mb-2" placeholder="Teléfono">
         <input type="text" name="sexo" class="form-control mb-2" placeholder="Sexo">
         <input type="email" name="correo" class="form-control mb-2" placeholder="Correo" required>
@@ -123,6 +126,7 @@ $pacientes = mysqli_query($link, "SELECT * FROM pacientes WHERE $where");
         <input type="hidden" name="id_paciente" id="edit-id">
         <input type="text" name="nombre" id="edit-nombre" class="form-control mb-2" placeholder="Nombre">
         <input type="text" name="apellido" id="edit-apellido" class="form-control mb-2" placeholder="Apellido">
+        <input type="text" name="cedula" id="edit-cedula" class="form-control mb-2" placeholder="Cédula">
         <input type="text" name="telefono" id="edit-telefono" class="form-control mb-2" placeholder="Teléfono">
         <input type="text" name="sexo" id="edit-sexo" class="form-control mb-2" placeholder="Sexo">
         <input type="email" name="correo" id="edit-correo" class="form-control mb-2" placeholder="Correo">
@@ -160,6 +164,7 @@ $pacientes = mysqli_query($link, "SELECT * FROM pacientes WHERE $where");
     document.getElementById('edit-id').value = button.getAttribute('data-id')
     document.getElementById('edit-nombre').value = button.getAttribute('data-nombre')
     document.getElementById('edit-apellido').value = button.getAttribute('data-apellido')
+    document.getElementById('edit-cedula').value = button.getAttribute('data-cedula')
     document.getElementById('edit-telefono').value = button.getAttribute('data-telefono')
     document.getElementById('edit-sexo').value = button.getAttribute('data-sexo')
     document.getElementById('edit-correo').value = button.getAttribute('data-correo')

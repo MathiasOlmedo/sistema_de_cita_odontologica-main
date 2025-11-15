@@ -19,14 +19,16 @@ try {
             if (isset($_POST['ingresar'])) {
                 $nombre = filter_var($_POST['name'], FILTER_SANITIZE_STRING);  //para filtrar la data
                 $apellido = filter_var($_POST['apellido'], FILTER_SANITIZE_STRING);  //para filtrar la data
+                $cedula = filter_var($_POST['cedula'], FILTER_SANITIZE_STRING);
                 $telefono = filter_var($_POST['cell'], FILTER_SANITIZE_STRING);  //para filtrar la data
                 $sexo = filter_var($_POST['sexo'], FILTER_SANITIZE_STRING);  //para filtrar la data
                 $fecha = filter_var($_POST['nacimiento'], FILTER_SANITIZE_STRING);  //para filtrar la data
                 $correo = filter_var($_POST['correo'], FILTER_SANITIZE_STRING);  //para filtrar la data
                 $clave = filter_var($_POST['password'], FILTER_SANITIZE_STRING);  //para filtrar la data
 
-                $query = " 
-                    INSERT INTO `pacientes`(`nombre`, `apellido`,`telefono` , `sexo`, `fecha_nacimiento` ,`correo_electronico`, `clave`) VALUES ('$nombre', '$apellido', '$telefono','$sexo','$fecha','$correo', '$clave')";
+               $query = " 
+    INSERT INTO `pacientes`(`nombre`, `apellido`, `cedula`, `telefono`, `sexo`, `fecha_nacimiento`, `correo_electronico`, `clave`) 
+    VALUES ('$nombre', '$apellido', '$cedula', '$telefono', '$sexo', '$fecha', '$correo', '$clave')";
             }
             $resultado = mysqli_query($link, $query); //Si devuelve True se ejecuto con exito y si no pues no
             if (!$resultado) {

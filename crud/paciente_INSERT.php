@@ -9,9 +9,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $sexo     = mysqli_real_escape_string($link, $_POST['sexo']);
     $correo   = mysqli_real_escape_string($link, $_POST['correo']);
     $clave    = mysqli_real_escape_string($link, $_POST['clave']); // ⚠️ sin hash
+    $cedula = mysqli_real_escape_string($link, $_POST['cedula']);
 
-    $sql = "INSERT INTO pacientes (nombre, apellido, telefono, sexo, correo_electronico, clave)
-            VALUES ('$nombre', '$apellido', '$telefono', '$sexo', '$correo', '$clave')";
+$sql = "INSERT INTO pacientes (nombre, apellido, cedula, telefono, sexo, correo_electronico, clave)
+        VALUES ('$nombre', '$apellido', '$cedula', '$telefono', '$sexo', '$correo', '$clave')";
 
     if (mysqli_query($link, $sql)) {
         echo json_encode(["status"=>"success"]);

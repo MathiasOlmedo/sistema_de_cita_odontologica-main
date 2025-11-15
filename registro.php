@@ -43,7 +43,10 @@ include_once('php/consultas.php');
                 <label for="apellido" class="font-weight-bold">Apellido </label>
                 <input type="text" class="form-control" name="apellido" placeholder="Apellido" required>
               </div>
-
+              <div class="col-md-4">
+                <label for="cedula" class="font-weight-bold">Cédula</label>
+              <input type="text" class="form-control" name="cedula" placeholder="Cédula" required>
+              </div>
               <div class="col-md-4">
                 <label for="sexo" class="font-weight-bold">Sexo</label>
                 <select class="form-control" name="sexo" required>

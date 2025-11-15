@@ -130,7 +130,7 @@ body{margin:0;background:var(--surface);color:var(--text);}
         <table class="table table-hover align-middle">
           <thead class="table-light">
             <tr>
-              <th>ID</th><th>Nombre</th><th>Apellido</th><th>Teléfono</th><th>Sexo</th><th>Correo</th><th class="text-center">Acciones</th>
+              <th>ID</th><th>Nombre</th><th>Apellido</th><th>Cédula</th><th>Teléfono</th><th>Sexo</th><th>Correo</th><th class="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -139,6 +139,7 @@ body{margin:0;background:var(--surface);color:var(--text);}
               <td><?= $p['id_paciente'] ?></td>
               <td><?= htmlspecialchars($p['nombre']) ?></td>
               <td><?= htmlspecialchars($p['apellido']) ?></td>
+              <td><?= htmlspecialchars($p['cedula']) ?></td>
               <td><?= htmlspecialchars($p['telefono']) ?></td>
               <td><?= htmlspecialchars($p['sexo']) ?></td>
               <td><?= htmlspecialchars($p['correo_electronico']) ?></td>
@@ -148,6 +149,7 @@ body{margin:0;background:var(--surface);color:var(--text);}
                   data-id="<?= $p['id_paciente'] ?>"
                   data-nombre="<?= htmlspecialchars($p['nombre']) ?>"
                   data-apellido="<?= htmlspecialchars($p['apellido']) ?>"
+                  data-cedula="<?= htmlspecialchars($p['cedula']) ?>"
                   data-telefono="<?= htmlspecialchars($p['telefono']) ?>"
                   data-sexo="<?= htmlspecialchars($p['sexo']) ?>"
                   data-correo="<?= htmlspecialchars($p['correo_electronico']) ?>">
@@ -177,6 +179,7 @@ body{margin:0;background:var(--surface);color:var(--text);}
       <div class="modal-body">
         <input type="text" name="nombre" class="form-control mb-2" placeholder="Nombre" required>
         <input type="text" name="apellido" class="form-control mb-2" placeholder="Apellido" required>
+        <input type="text" name="cedula" id="edit-cedula" class="form-control mb-2" placeholder="Cédula">
         <input type="text" name="telefono" class="form-control mb-2" placeholder="Teléfono">
         <input type="text" name="sexo" class="form-control mb-2" placeholder="Sexo">
         <input type="email" name="correo" class="form-control mb-2" placeholder="Correo electrónico" required>
@@ -233,6 +236,7 @@ document.getElementById('modalEditarPaciente').addEventListener('show.bs.modal',
   $('#edit-id').val(b.dataset.id);
   $('#edit-nombre').val(b.dataset.nombre);
   $('#edit-apellido').val(b.dataset.apellido);
+  $('#edit-cedula').val(b.dataset.cedula);
   $('#edit-telefono').val(b.dataset.telefono);
   $('#edit-sexo').val(b.dataset.sexo);
   $('#edit-correo').val(b.dataset.correo);
