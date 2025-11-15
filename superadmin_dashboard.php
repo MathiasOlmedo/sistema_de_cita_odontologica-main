@@ -1,26 +1,26 @@
-<?php 
+<?php
 include_once('./php/conexionDB.php');
 include_once('./php/consultas.php');
 
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
-/* ====== CONTROL DE SESIÓN ====== */
-if (!isset($_SESSION['id_superadmin'])) {
+/* ✅ CORRECCIÓN: Validar usando las variables ESTANDARIZADAS */
+if (!isset($_SESSION['id_usuario']) || !isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'SuperAdmin') {
     $_SESSION['MensajeTexto'] = "Acceso no autorizado.";
     $_SESSION['MensajeTipo']  = "p-3 mb-2 bg-danger text-white";
     header("Location: /sistema_de_cita_odontologica-main/index.php");
     exit;
 }
 
-$usuario = $_SESSION['usuario'] ?? 'Super Admin';
+$usuario = $_SESSION['usuario'] ?? $_SESSION['nombre'] ?? 'Super Admin';
 
 date_default_timezone_set("America/Asuncion");
 $fecha = date("d/m/Y");
 $hora  = date("H:i");
 
 /* ====== Sidebar variables (estándar) ====== */
-$SIDEBAR_ACTIVE = 'superadmin'; // solo referencial en caso de reutilizar componentes
-$AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; // cámbialo si tienes uno de superadmin
+$SIDEBAR_ACTIVE = 'superadmin';
+$AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png";
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -34,7 +34,6 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-  <!-- ======== Estilo estandarizado (idéntico a tus otros módulos) ======== -->
   <style>
     :root{
       --brand:#0d6efd;
@@ -57,12 +56,11 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
       font-feature-settings:"liga" 1, "calt" 1;
     }
 
-    /* ===== SIDEBAR (igual a las demás vistas) ===== */
     .sidebar{
       position:fixed; top:0; left:0;
       width:var(--sidebar-w); height:100vh;
       background:#fff;
-      border-right:0 !important; /* sin línea */
+      border-right:0 !important;
       box-shadow:none !important;
       padding:1.25rem 1rem;
       overflow:hidden !important;
@@ -89,7 +87,6 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
       font-weight:600;
     }
 
-    /* ===== MAIN empujado por sidebar ===== */
     .main{
       margin-left:var(--sidebar-w);
       min-height:100vh;
@@ -100,7 +97,6 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
       margin:0 auto; padding:0 1.25rem;
     }
 
-    /* ===== TOPBAR ===== */
     .topbar{
       background:#fff;
       border-bottom:1px solid rgba(0,0,0,.06);
@@ -108,7 +104,6 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
       position:sticky; top:0; z-index:10;
     }
 
-    /* ===== CONTENT ===== */
     .content{ padding:1.25rem 0 2rem; }
 
     .card{
@@ -124,7 +119,6 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
       text-align:right; font-size:.9rem; color:#6c757d; padding:1rem 0;
     }
 
-    /* ===== Responsive ===== */
     @media (max-width:992px){
       :root{ --sidebar-w:240px; }
       .sidebar{ width:var(--sidebar-w); }
@@ -139,7 +133,6 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
 </head>
 <body>
 
-<!-- ===== Sidebar estandarizado ===== -->
 <aside class="sidebar">
   <div class="brand mb-2">
     <img src="/sistema_de_cita_odontologica-main/src/img/logo.png" alt="Perfect Teeth" width="32" height="32">
@@ -173,11 +166,8 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
     </a>
   </nav>
 </aside>
-<!-- ===== /Sidebar ===== -->
 
-<!-- ===== Main ===== -->
 <div class="main">
-  <!-- Topbar -->
   <header class="topbar">
     <div class="container-max d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center gap-2">
@@ -191,11 +181,9 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
     </div>
   </header>
 
-  <!-- Content -->
   <main class="content">
     <div class="container-max">
 
-      <!-- Bienvenida + accesos rápidos -->
       <div class="row g-3 mb-3">
         <div class="col-12">
           <div class="card">
@@ -223,7 +211,6 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
         </div>
       </div>
 
-      <!-- Contenido dinámico -->
       <div id="dynamic-content">
         <div class="card">
           <div class="card-body">
@@ -233,7 +220,6 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
         </div>
       </div>
 
-      <!-- Footer -->
       <div class="footer">
         Sistema de Citas Odontológicas © <?php echo date("Y"); ?>
       </div>
@@ -241,7 +227,6 @@ $AVATAR_IMG     = "/sistema_de_cita_odontologica-main/src/img/admin_user.png"; /
   </main>
 </div>
 
-<!-- Scripts -->
 <script>
 function loadContent(page) {
   $('.nav-menu .nav-link').removeClass('active');
@@ -252,7 +237,6 @@ function loadContent(page) {
     type: "GET",
     success: function(response) {
       $("#dynamic-content").html(response);
-      // Scroll arriba tras cargar
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     error: function() {

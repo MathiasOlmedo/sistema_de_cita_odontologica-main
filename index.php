@@ -2,19 +2,19 @@
 include_once('./php/conexionDB.php');
 include_once('./php/consultas.php');
 
-// Iniciar sesión
+// ad✅ Iniciar sesión solo si no está activa
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Si ya hay una sesión activa, redirigir según el tipo
-if (isset($_SESSION['id_usuario']) && isset($_SESSION['tipo'])) {
+// ✅ CORRECCIÓN: Redirigir SOLO si hay sesión válida y completa
+if (isset($_SESSION['id_usuario']) && isset($_SESSION['tipo']) && !empty($_SESSION['tipo'])) {
     switch ($_SESSION['tipo']) {
         case 'Paciente':
             header("Location: principal.php");
             exit();
         case 'Doctor':
-            header("Location: doctor.php");
+            header("Location: admin/inicioAdmin.php"); // ✅ Ruta corregida
             exit();
         case 'Secretaria':
             header("Location: secretaria/presupuestos_pendientes.php");
@@ -22,78 +22,47 @@ if (isset($_SESSION['id_usuario']) && isset($_SESSION['tipo'])) {
         case 'SuperAdmin':
             header("Location: superadmin_dashboard.php");
             exit();
+        default:
+            // ✅ Si el tipo no es válido, destruir sesión y continuar al login
+            session_destroy();
+            session_start();
+            break;
     }
 }
 
-// Si el usuario envió el formulario
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// ✅ Procesar formulario de login
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'], $_POST['password'])) {
     $vUsuario = trim(htmlspecialchars($_POST['username']));
     $vClave   = trim(htmlspecialchars($_POST['password']));
 
-    // Login directo para secretaria
+    // ✅ Login directo para secretaria (hardcoded)
     if ($vUsuario === 'secretaria@clinic.com' && $vClave === 'secret123') {
         $_SESSION['id_usuario'] = 1;
+        $_SESSION['id_secretaria'] = 1; // ✅ AGREGADO: Variable requerida por presupuestos_pendientes.php
         $_SESSION['nombre']     = 'Secretaria';
         $_SESSION['tipo']       = 'Secretaria';
         header("Location: secretaria/presupuestos_pendientes.php");
         exit();
     }
 
-    // Login directo para superadmin (si lo querés tener activo)
-    if ($vUsuario === 'admin@admin.com' && $vClave === 'admin') {
-        $_SESSION['id_usuario'] = 1;
-        $_SESSION['nombre']     = 'Super Admin';
-        $_SESSION['tipo']       = 'SuperAdmin';
-        header("Location: superadmin_dashboard.php");
-        exit();
-    }
-
-    // Verificación en base de datos (paciente o doctor)
+    // ✅ Verificación en base de datos
     $usuario = validarLogin($link, $vUsuario, $vClave);
-
-    if ($usuario) {
-        $_SESSION['id_usuario'] = $usuario['id'];
-        $_SESSION['nombre']     = $usuario['nombre'];
-        $_SESSION['tipo']       = $usuario['tipo'];
-
-        // Redirección según tipo
-        switch ($usuario['tipo']) {
-            case 'Paciente':
-                header("Location: principal.php");
-                exit();
-            case 'Doctor':
-                header("Location: doctor.php");
-                exit();
-            case 'Secretaria':
-                header("Location: secretaria/presupuestos_pendientes.php");
-                exit();
-            case 'SuperAdmin':
-                header("Location: superadmin_dashboard.php");
-                exit();
-        }
-    } else {
-        $_SESSION['MensajeTexto'] = "Usuario o contraseña incorrectos.";
-        $_SESSION['MensajeTipo']  = "alert alert-danger";
-    }
+    
+    // ✅ Si validarLogin() ya redirigió, este código no se ejecuta
+    // Si llegamos aquí, es porque falló el login
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>Perfect Teeth - Iniciar Sesión</title>
-
-    <!-- ICONO -->
     <link rel="icon" href="./src/img/logo.png" type="image/png" />
-
-    <!-- CSS -->
     <link rel="stylesheet" href="src/css/login.css" />
     <link href="src/css/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="src/css/lib/fontawesome/css/all.css">
 </head>
-
 <body>
     <div class="container login-container">
         <div class="row">
@@ -137,10 +106,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </form>
 
-                <?php if (isset($_SESSION['MensajeTexto'])): ?>
+                <?php if (isset($_SESSION['MensajeTexto']) && !empty($_SESSION['MensajeTexto'])): ?>
                     <div class="card mt-3">
                         <div class="notification <?php echo $_SESSION['MensajeTipo']; ?>">
-                            <?php echo $_SESSION['MensajeTexto']; ?>
+                            <?php echo htmlspecialchars($_SESSION['MensajeTexto']); ?>
                             <button class="delete"><i class="fas fa-times"></i></button>
                         </div>
                     </div>
@@ -164,5 +133,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     </script>
 </body>
-
 </html>
