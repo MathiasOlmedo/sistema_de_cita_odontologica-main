@@ -9,66 +9,50 @@ if (isset($_SESSION['id_paciente'])) {
      $row = consultarPaciente($link, $vUsuario);
 } else {
      $_SESSION['MensajeTexto'] = "Error: acceso al sistema no registrado.";
-     $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
+     $_SESSION['MensajeTipo'] = "danger";
      header("Location: ./index.php");
      exit();
 }
 
 /* ============================================================
-   Consultas para el Dashboard Principal
+   Mis Presupuestos + Pagos
    ============================================================ */
-
-// Estadísticas del paciente
-$sqlCitas = "
+$presupuestos = [];
+$sqlPres = "
   SELECT 
-    COUNT(*) as total,
-    SUM(CASE WHEN estado = 'A' THEN 1 ELSE 0 END) as realizadas,
-    SUM(CASE WHEN fecha_cita >= CURDATE() AND estado = 'I' THEN 1 ELSE 0 END) as proximas
-  FROM citas 
-  WHERE id_paciente = ?
+    p.id_presupuesto, p.folio, p.fecha, p.total, p.estado, p.pdf_path,
+    COALESCE(SUM(pg.monto),0) AS pagado
+  FROM presupuesto p
+  LEFT JOIN pagos pg ON pg.id_presupuesto = p.id_presupuesto
+  WHERE p.id_paciente = ?
+  GROUP BY p.id_presupuesto
+  ORDER BY p.fecha DESC
 ";
-$stmt = $link->prepare($sqlCitas);
-$stmt->bind_param('i', $vUsuario);
-$stmt->execute();
-$stats = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-
-// Contar presupuestos
-$sqlPresupuestos = "SELECT COUNT(*) as total FROM presupuesto WHERE id_paciente = ?";
-$stmt = $link->prepare($sqlPresupuestos);
-$stmt->bind_param('i', $vUsuario);
-$stmt->execute();
-$statsPresupuestos = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-
-// Contar tratamientos
-$sqlTratamientos = "
-  SELECT COUNT(*) as total 
-  FROM presupuesto_detalle pd
-  INNER JOIN presupuesto p ON p.id_presupuesto = pd.id_presupuesto
-  WHERE p.id_paciente = ? AND p.estado = 'aprobado'
-";
-$stmt = $link->prepare($sqlTratamientos);
-$stmt->bind_param('i', $vUsuario);
-$stmt->execute();
-$statsTratamientos = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+if ($stmt = $link->prepare($sqlPres)) {
+  $stmt->bind_param('i', $vUsuario);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  while ($r = $res->fetch_assoc()) {
+    $r['saldo_calc'] = (float)$r['total'] - (float)$r['pagado'];
+    if ($r['saldo_calc'] < 0) $r['saldo_calc'] = 0.0;
+    $presupuestos[] = $r;
+  }
+  $stmt->close();
+}
 
 /* ====== Variables del sidebar ====== */
-$SIDEBAR_ACTIVE = 'panel';
+$SIDEBAR_ACTIVE = 'presupuestos';
 $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Perfect Teeth – Mi Panel</title>
+  <title>Perfect Teeth – Mis Presupuestos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="./src/img/logo.png" type="image/png" />
   
-  <!-- Bootstrap -->
   <link rel="stylesheet" href="src/css/bootstrap.min.css">
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="src/css/font-awesome.min.css">
   
   <style>
@@ -163,100 +147,126 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
       box-shadow:0 10px 25px rgba(15,23,42,.12);
     }
 
-    /* ===== Estadísticas ===== */
-    .stats-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
-      gap:1.25rem;
-      margin-bottom:2rem;
-    }
-    .stat-box{
-      background:linear-gradient(135deg, var(--brand) 0%, #0056d2 100%);
-      color:white;
-      padding:1.75rem;
-      border-radius:var(--radius);
-      text-align:center;
-      box-shadow:0 4px 15px rgba(13,110,253,0.3);
-      transition:all 0.3s ease;
-    }
-    .stat-box:hover{
-      transform:translateY(-5px);
-      box-shadow:0 8px 25px rgba(13,110,253,0.4);
-    }
-    .stat-box h3{
-      font-size:2.5rem; margin:.5rem 0; font-weight:700;
-    }
-    .stat-box p{
-      margin:0; font-size:0.95rem; opacity:0.95; text-transform:uppercase; letter-spacing:1px;
-    }
-    .stat-box i{
-      font-size:2rem; opacity:0.8; margin-bottom:.5rem;
-    }
-    .stat-box.green{ background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%); box-shadow:0 4px 15px rgba(17,153,142,0.3); }
-    .stat-box.green:hover{ box-shadow:0 8px 25px rgba(17,153,142,0.4); }
-    .stat-box.pink{ background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%); box-shadow:0 4px 15px rgba(240,147,251,0.3); }
-    .stat-box.pink:hover{ box-shadow:0 8px 25px rgba(240,147,251,0.4); }
-    .stat-box.orange{ background:linear-gradient(135deg, #fa709a 0%, #fee140 100%); box-shadow:0 4px 15px rgba(250,112,154,0.3); }
-    .stat-box.orange:hover{ box-shadow:0 8px 25px rgba(250,112,154,0.4); }
-
-    /* ===== Sección de bienvenida ===== */
-    .welcome-section{
-      background:linear-gradient(135deg, var(--brand) 0%, #0056d2 100%);
-      color:white;
-      padding:2.5rem;
-      border-radius:var(--radius);
-      margin-bottom:2rem;
-      box-shadow:0 6px 20px rgba(13,110,253,0.3);
-    }
-    .welcome-section h1{
-      font-size:2.2rem;
-      font-weight:700;
-      margin-bottom:0.5rem;
-    }
-    .welcome-section p{
-      font-size:1.1rem;
-      opacity:0.95;
-      margin:0;
-    }
-
-    /* ===== Accesos rápidos ===== */
-    .quick-access{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
-      gap:1.25rem;
-      margin-top:2rem;
-    }
-    .quick-link{
+    .card-header-custom {
+      padding:1.25rem 1.5rem;
       background:white;
-      padding:1.5rem;
-      border-radius:var(--radius);
-      text-align:center;
-      text-decoration:none;
+      border-bottom:2px solid #f0f0f0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    
+    .card-header-custom h3 {
+      margin:0;
+      font-size:1.5rem;
       color:#333;
-      border:2px solid rgba(0,0,0,.06);
+      font-weight:700;
+    }
+    
+    .card-header-custom .icon {
+      font-size:1.8rem;
+      color:#667eea;
+    }
+
+    /* ===== Tabla moderna ===== */
+    .table-modern {
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0 12px;
+    }
+    
+    .table-modern thead th {
+      background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color:white;
+      padding:15px;
+      border:none;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      font-size:0.85rem;
+    }
+    
+    .table-modern thead th:first-child {
+      border-top-left-radius:10px;
+      border-bottom-left-radius:10px;
+    }
+    
+    .table-modern thead th:last-child {
+      border-top-right-radius:10px;
+      border-bottom-right-radius:10px;
+    }
+    
+    .table-modern tbody tr {
+      background:white;
+      box-shadow:0 3px 10px rgba(0,0,0,0.06);
       transition:all 0.3s ease;
     }
-    .quick-link:hover{
-      transform:translateY(-5px);
-      box-shadow:0 8px 25px rgba(13,110,253,0.2);
-      border-color:var(--brand);
-      text-decoration:none;
-      color:var(--brand);
+    
+    .table-modern tbody tr:hover {
+      box-shadow:0 5px 20px rgba(0,0,0,0.12);
+      transform:translateY(-3px);
     }
-    .quick-link i{
-      font-size:2.5rem;
-      color:var(--brand);
-      margin-bottom:0.75rem;
+    
+    .table-modern td {
+      border:none;
+      padding:18px;
+      vertical-align:middle;
+      color:#333;
     }
-    .quick-link h4{
-      margin:0.5rem 0 0.25rem;
-      font-size:1.1rem;
+    
+    .table-modern td:first-child {
+      border-top-left-radius:10px;
+      border-bottom-left-radius:10px;
+    }
+    
+    .table-modern td:last-child {
+      border-top-right-radius:10px;
+      border-bottom-right-radius:10px;
+    }
+
+    /* ===== Badges ===== */
+    .badge-custom {
+      padding:8px 18px;
+      border-radius:20px;
       font-weight:600;
-    }
-    .quick-link p{
-      margin:0;
       font-size:0.85rem;
-      color:#6c757d;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+      display:inline-block;
+    }
+    
+    .badge-pendiente {
+      background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color:white;
+    }
+    
+    .badge-aprobado {
+      background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color:white;
+    }
+
+    /* ===== Botones ===== */
+    .btn-gradient {
+      background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color:white;
+      border:none;
+      padding:8px 20px;
+      border-radius:20px;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      transition:all 0.3s ease;
+      box-shadow:0 4px 15px rgba(102,126,234,0.3);
+      text-decoration:none;
+      display:inline-block;
+      font-size:0.85rem;
+    }
+    
+    .btn-gradient:hover {
+      transform:translateY(-3px);
+      box-shadow:0 6px 25px rgba(102,126,234,0.5);
+      color:white;
+      text-decoration:none;
     }
 
     /* ===== Alertas ===== */
@@ -296,6 +306,8 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
     .gap-2{ gap:0.5rem !important; }
     .gap-3{ gap:1rem !important; }
     .text-muted{ color:#6c757d !important; }
+    .text-success{ color:#11998e !important; }
+    .text-danger{ color:#f5576c !important; }
 
     /* ===== Responsive ===== */
     @media (max-width:992px){
@@ -304,28 +316,13 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
       main{ margin-left:var(--sidebar-w); }
     }
     @media (max-width:768px){
-      .stats-grid{
-        grid-template-columns:repeat(2, 1fr);
-      }
-      .stat-box h3{
-        font-size:2rem;
-      }
-      .welcome-section h1{
-        font-size:1.8rem;
-      }
-      .d-md-none{ display:none !important; }
+      .table-modern{ font-size:0.9rem; }
+      .table-modern td, .table-modern thead th{ padding:12px; }
     }
     @media (max-width:575.98px){
       :root{ --sidebar-w:220px; }
       .sidebar{ width:var(--sidebar-w); }
       main{ margin-left:var(--sidebar-w); }
-      .stats-grid{
-        grid-template-columns:1fr;
-      }
-      .quick-access{
-        grid-template-columns:1fr;
-      }
-      .d-lg-none{ display:none !important; }
     }
   </style>
 </head>
@@ -347,19 +344,19 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
       <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='panel'?'active':''); ?>" href="principal.php">
         <i class="fa fa-tachometer"></i><span>Mi Panel</span>
       </a>
-      <a class="nav-link" href="mis_citas.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='citas'?'active':''); ?>" href="mis_citas.php">
         <i class="fa fa-calendar-check-o"></i><span>Mis Citas</span>
       </a>
-      <a class="nav-link" href="agendar_cita.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='agendar'?'active':''); ?>" href="agendar_cita.php">
         <i class="fa fa-calendar-plus-o"></i><span>Nueva Cita</span>
       </a>
-      <a class="nav-link" href="mis_presupuestos.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='presupuestos'?'active':''); ?>" href="mis_presupuestos.php">
         <i class="fa fa-file-text-o"></i><span>Mis Presupuestos</span>
       </a>
-      <a class="nav-link" href="mis_tratamientos.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='tratamientos'?'active':''); ?>" href="mis_tratamientos.php">
         <i class="fa fa-medkit"></i><span>Mis Tratamientos</span>
       </a>
-      <a class="nav-link" href="mi_perfil.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='perfil'?'active':''); ?>" href="mi_perfil.php">
         <i class="fa fa-user-circle"></i><span>Mi Perfil</span>
       </a>
       <a class="nav-link" href="./Reportes/reporte.php" target="_blank">
@@ -380,16 +377,8 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
     <header class="topbar">
       <div class="container-max d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
-          <i class="fa fa-tachometer" style="color:#0d6efd;"></i>
-          <span style="font-weight:600;">Mi Panel Personal</span>
-        </div>
-        <div class="d-flex align-items-center gap-3">
-          <span class="text-muted d-md-none d-lg-inline">
-            <i class="fa fa-phone"></i> +1 (849) 856 4014
-          </span>
-          <span class="text-muted d-lg-none d-none d-md-inline">
-            <i class="fa fa-clock-o"></i> 8:00 AM - 7:00 PM
-          </span>
+          <i class="fa fa-file-text-o" style="color:#0d6efd;"></i>
+          <span style="font-weight:600;">Mis Presupuestos</span>
         </div>
       </div>
     </header>
@@ -410,86 +399,65 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
           ?>
         <?php endif; ?>
 
-        <!-- Bienvenida -->
-        <div class="welcome-section">
-          <h1>
-            <i class="fa fa-hand-peace-o"></i> 
-            ¡Bienvenido<?php echo ($row['sexo'] === 'Femenino' ? 'a' : ''); ?>, <?php echo htmlspecialchars($row['nombre']); ?>!
-          </h1>
-          <p>Gestiona tus citas, presupuestos y mantén tu salud dental al día</p>
-        </div>
-
-        <!-- Estadísticas -->
-        <div class="stats-grid">
-          <div class="stat-box">
-            <i class="fa fa-calendar-check-o"></i>
-            <h3><?php echo $stats['proximas']; ?></h3>
-            <p>Citas Próximas</p>
-          </div>
-          
-          <div class="stat-box green">
-            <i class="fa fa-check-circle"></i>
-            <h3><?php echo $stats['realizadas']; ?></h3>
-            <p>Citas Realizadas</p>
-          </div>
-          
-          <div class="stat-box pink">
-            <i class="fa fa-file-text-o"></i>
-            <h3><?php echo $statsPresupuestos['total']; ?></h3>
-            <p>Presupuestos</p>
-          </div>
-          
-          <div class="stat-box orange">
-            <i class="fa fa-heartbeat"></i>
-            <h3><?php echo $statsTratamientos['total']; ?></h3>
-            <p>Tratamientos</p>
-          </div>
-        </div>
-
-        <!-- Accesos Rápidos -->
+        <!-- Tabla de Presupuestos -->
         <div class="card">
+          <div class="card-header-custom">
+            <h3><i class="fa fa-file-text"></i> Historial de Presupuestos</h3>
+            <span class="icon"><i class="fa fa-money"></i></span>
+          </div>
+
           <div style="padding:1.5rem;">
-            <h3 style="margin:0 0 1.5rem; color:#333;">
-              <i class="fa fa-bolt" style="color:#0d6efd;"></i> Accesos Rápidos
-            </h3>
-            
-            <div class="quick-access">
-              <a href="mis_citas.php" class="quick-link">
-                <i class="fa fa-calendar"></i>
-                <h4>Mis Citas</h4>
-                <p>Ver todas mis citas</p>
-              </a>
-              
-              <a href="agendar_cita.php" class="quick-link">
-                <i class="fa fa-calendar-plus-o"></i>
-                <h4>Agendar Cita</h4>
-                <p>Programar nueva cita</p>
-              </a>
-              
-              <a href="mis_presupuestos.php" class="quick-link">
-                <i class="fa fa-file-text-o"></i>
-                <h4>Presupuestos</h4>
-                <p>Revisar presupuestos</p>
-              </a>
-              
-              <a href="mis_tratamientos.php" class="quick-link">
-                <i class="fa fa-medkit"></i>
-                <h4>Tratamientos</h4>
-                <p>Historial de tratamientos</p>
-              </a>
-              
-              <a href="mi_perfil.php" class="quick-link">
-                <i class="fa fa-user-circle"></i>
-                <h4>Mi Perfil</h4>
-                <p>Editar información</p>
-              </a>
-              
-              <a href="./Reportes/reporte.php" target="_blank" class="quick-link">
-                <i class="fa fa-file-pdf-o"></i>
-                <h4>Reportes</h4>
-                <p>Descargar reportes</p>
-              </a>
-            </div>
+            <?php if (empty($presupuestos)): ?>
+              <div style="text-align:center; padding:3rem; color:#999;">
+                <i class="fa fa-file-text-o" style="font-size:4rem; margin-bottom:1rem;"></i>
+                <h4>No tienes presupuestos registrados</h4>
+                <p>Los presupuestos aparecerán aquí una vez que el doctor los genere</p>
+              </div>
+            <?php else: ?>
+              <div class="table-responsive">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th>Folio</th>
+                      <th>Fecha</th>
+                      <th>Total</th>
+                      <th>Pagado</th>
+                      <th>Saldo</th>
+                      <th>Estado</th>
+                      <th>PDF</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($presupuestos as $p): ?>
+                    <tr>
+                      <td><strong><?php echo htmlspecialchars($p['folio']); ?></strong></td>
+                      <td><?php echo date('d/m/Y', strtotime($p['fecha'])); ?></td>
+                      <td>Gs <?php echo number_format($p['total'], 0, ',', '.'); ?></td>
+                      <td class="text-success"><strong>Gs <?php echo number_format($p['pagado'], 0, ',', '.'); ?></strong></td>
+                      <td class="text-danger"><strong>Gs <?php echo number_format($p['saldo_calc'], 0, ',', '.'); ?></strong></td>
+                      <td>
+                        <span class="badge-custom <?php 
+                          if ($p['estado'] === 'aprobado') echo 'badge-aprobado';
+                          else echo 'badge-pendiente';
+                        ?>">
+                          <?php echo ucfirst($p['estado']); ?>
+                        </span>
+                      </td>
+                      <td>
+                        <?php if (!empty($p['pdf_path'])): ?>
+                          <a href="<?php echo htmlspecialchars($p['pdf_path']); ?>" target="_blank" class="btn-gradient">
+                            <i class="fa fa-file-pdf-o"></i> Ver
+                          </a>
+                        <?php else: ?>
+                          <span class="text-muted">Sin PDF</span>
+                        <?php endif; ?>
+                      </td>
+                    </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            <?php endif; ?>
           </div>
         </div>
 

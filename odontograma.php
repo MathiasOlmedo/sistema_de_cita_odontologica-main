@@ -103,6 +103,16 @@ body {
 /* Tabla procedimientos */
 #tablaProcedimientos th, #tablaProcedimientos td { text-align:center; }
 #pacientesTable tbody tr td .btn { white-space: nowrap; }
+
+/* Card inicio odontograma */
+#btnIniciarOdontograma .card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: var(--radius);
+}
+#btnIniciarOdontograma .card-body {
+    padding: 3rem 2rem;
+}
 </style>
 </head>
 
@@ -126,6 +136,7 @@ body {
     <nav class="nav-menu">
         <a href="admin/inicioAdmin.php" class="nav-link"><i class="far fa-calendar-check"></i> Citas pendientes</a>
         <a href="admin/calendar.php" class="nav-link"><i class="far fa-calendar-alt"></i> Calendario</a>
+        <a href="admin/historial_medico.php" class="nav-link"><i class="fas fa-tooth"></i> Historial médico</a>
         <a href="odontograma.php" class="nav-link active"><i class="fas fa-tooth"></i> Odontograma</a>
         <a href="Admin/presupuestos_doctor.php" class="nav-link"><i class="fas fa-file-invoice-dollar"></i> Presupuestos</a>
         <a href="reportes_doctor.php" class="nav-link"><i class="fas fa-chart-line"></i> Reportes</a>
@@ -137,6 +148,20 @@ body {
 <div class="main">
     <h2>Odontograma</h2>
     <p>Dr. <?= htmlspecialchars($nombreDoctor) ?></p>
+
+    <!-- Botón para iniciar odontograma (aparece si se cierra el modal sin seleccionar) -->
+    <div id="btnIniciarOdontograma" class="text-center my-5" style="display:none;">
+        <div class="card mx-auto" style="max-width: 500px;">
+            <div class="card-body">
+                <i class="fas fa-tooth fa-3x text-primary mb-3"></i>
+                <h4>¿Deseas crear un odontograma?</h4>
+                <p class="text-muted">Selecciona un paciente para comenzar</p>
+                <button id="btnSeleccionarPaciente" class="btn btn-primary btn-lg">
+                    <i class=""></i> Seleccionar Paciente
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Odontograma -->
     <div id="odontograma" class="mb-3" style="display:none;">
@@ -204,7 +229,10 @@ body {
 <div class="modal fade" id="procedimientoModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5>Procedimiento para el diente <span id="dienteSeleccionado"></span></h5></div>
+      <div class="modal-header">
+        <h5>Procedimiento para el diente <span id="dienteSeleccionado"></span></h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
       <div class="modal-body">
         <form id="formProcedimiento">
           <input type="hidden" id="dienteId">
@@ -245,7 +273,7 @@ body {
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
-        <h5><i class="fa-solid fa-user-injured"></i> Seleccionar paciente</h5>
+        <h5><i class=""></i> Seleccionar paciente</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
@@ -284,6 +312,19 @@ $(document).ready(function(){
   $('#seleccionarPacienteModal').modal('show');
   cargarPacientes({reset:true});
 
+  // Detectar cuando se cierra el modal sin seleccionar paciente
+  $('#seleccionarPacienteModal').on('hidden.bs.modal', function () {
+    if(!selectedPaciente){
+      $('#btnIniciarOdontograma').fadeIn();
+    }
+  });
+
+  // Botón para abrir nuevamente el modal
+  $('#btnSeleccionarPaciente').on('click', function(){
+    $('#btnIniciarOdontograma').hide();
+    $('#seleccionarPacienteModal').modal('show');
+  });
+
   // Buscar pacientes
   function debounce(fn,delay){let t=null;return function(){clearTimeout(t);const ctx=this,args=arguments;t=setTimeout(()=>fn.apply(ctx,args),delay);}}
   function renderPacientes(items){
@@ -303,6 +344,7 @@ $(document).ready(function(){
   $(document).on('click','.btnSelectPaciente',function(){
     selectedPaciente={id:$(this).data('id'),nombre:$(this).data('nombre'),correo:$(this).data('correo'),telefono:$(this).data('telefono')};
     $('#seleccionarPacienteModal').modal('hide');
+    $('#btnIniciarOdontograma').hide(); // Ocultar el botón al seleccionar
     $('#odontograma, #tablaProcedimientos, #btnTerminar').fadeIn();
     alert(`Paciente seleccionado: ${selectedPaciente.nombre}`);
   });
@@ -335,7 +377,16 @@ $(document).ready(function(){
       url:'php/generar_presupuesto.php',method:'POST',
       data:{paciente_nombre:selectedPaciente.nombre,paciente_correo:selectedPaciente.correo,paciente_telefono:selectedPaciente.telefono,id_paciente:selectedPaciente.id,procedimientos:JSON.stringify(procedimientos)},
       success:function(res){const r=(typeof res==='object')?res:JSON.parse(res);
-        if(r.status==='ok'){alert('Presupuesto generado correctamente.');if(r.pdf_url)window.open(r.pdf_url,'_blank');window.location.href='secretaria/presupuestos.php';}
+        if(r.status==='ok'){
+          alert('✓ Presupuesto generado correctamente para ' + selectedPaciente.nombre);
+          //if(r.pdf_url)window.open(r.pdf_url,'_blank');
+          // Limpiar el formulario para crear un nuevo odontograma
+          selectedPaciente = null;
+          $('#tablaProcedimientos tbody').empty();
+          $('#totalPrecio').text('0.00');
+          $('#odontograma, #tablaProcedimientos, #btnTerminar').hide();
+          $('#btnIniciarOdontograma').fadeIn();
+        }
         else alert('Error: '+r.message);
       },
       error:()=>alert('Error al generar presupuesto.')

@@ -130,6 +130,9 @@ if (!$res) {
         <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='calendario'?'active':''); ?>" href="calendar.php">
           <i class="far fa-calendar-alt"></i><span>Calendario</span>
         </a>
+        <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='historial'?'active':''); ?>" href="historial_medico.php">
+    <i class="fas fa-notes-medical"></i><span>Historial médico</span>
+</a>
         <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='odontograma'?'active':''); ?>" href="../odontograma.php">
           <i class="fas fa-tooth"></i><span>Odontograma</span>
         </a>

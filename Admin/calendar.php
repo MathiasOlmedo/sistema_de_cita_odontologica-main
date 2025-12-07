@@ -187,7 +187,7 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
         editable: false,
         eventLimit: true,
 
-        /* Altura real al contenedor, sin “zoom” */
+        /* Altura real al contenedor, sin "zoom" */
         height: 'parent',          // usa la altura de .calendar-wrapper
         contentHeight: 'auto',
         handleWindowResize: true,
@@ -221,11 +221,24 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
             <?php } ?>
           <?php endif; ?>
         ],
+        
+        // ✅ MODIFICACIÓN: eventClick actualizado para cargar modal de edición
         eventClick: function(calEvent){
-          $('#event-title').text(calEvent.title);
-          $('#event-description').html(calEvent.description);
-          $('#modal-event').modal('show');
+          // Extraer ID de la cita
+          const idCita = calEvent.id;
+          
+          // Cargar modal de edición
+          $('#modal-event-body').load('cita_editar_modal.php?id=' + idCita, function() {
+            $('#modal-event').modal('show');
+          });
         }
+      });
+
+      // ✅ NUEVO: Botón para abrir modal de nueva cita
+      $('#btnNuevaCita').on('click', function() {
+        $('#modal-nueva-cita-body').load('cita_nueva_modal.php', function() {
+          $('#modalNuevaCita').modal('show');
+        });
       });
     });
   </script>
@@ -253,6 +266,9 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
         <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='calendario'?'active':''); ?>" href="calendar.php">
           <i class="far fa-calendar-alt"></i><span>Calendario</span>
         </a>
+        <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='historial'?'active':''); ?>" href="historial_medico.php">
+    <i class="fas fa-notes-medical"></i><span>Historial médico</span>
+</a>
         <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='odontograma'?'active':''); ?>" href="../odontograma.php">
           <i class="fas fa-tooth"></i><span>Odontograma</span>
         </a>
@@ -286,9 +302,12 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
     <div class="site-section">
       <div class="container-max">
         <div class="calendar-card">
+          <!-- ✅ MODIFICACIÓN: Agregado botón "Nueva Cita" en el header -->
           <div class="calendar-header">
             <h1 class="calendar-title">Calendario de Citas</h1>
-            <div class="text-muted small d-none d-sm-block"><?php echo $DOCTOR_NAME; ?></div>
+            <button class="btn btn-success btn-sm" id="btnNuevaCita">
+              <i class="fa fa-plus-circle"></i> Nueva Cita
+            </button>
           </div>
           <div class="calendar-wrapper">
             <div id="calendar"></div>
@@ -298,21 +317,45 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
     </div>
   </main>
 
-  <!-- Modal evento -->
-  <div class="modal fade" id="modal-event" tabindex="-1" role="dialog" aria-labelledby="modal-eventLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+  <!-- ✅ NUEVO: Modal para EDITAR cita existente -->
+  <div class="modal fade" id="modal-event" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title text-primary" id="event-title"></h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">
+            <i class="fa fa-edit"></i> Editar Cita
+          </h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body text-dark">
-          <div id="event-description"></div>
+        <div id="modal-event-body">
+          <div class="text-center p-5">
+            <i class="fa fa-spinner fa-spin fa-3x text-primary"></i>
+            <p class="mt-3">Cargando datos de la cita...</p>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ NUEVO: Modal para NUEVA cita desde calendario -->
+  <div class="modal fade" id="modalNuevaCita" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">
+            <i class="fa fa-plus-circle"></i> Nueva Cita
+          </h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div id="modal-nueva-cita-body">
+          <div class="text-center p-5">
+            <i class="fa fa-spinner fa-spin fa-3x text-success"></i>
+            <p class="mt-3">Cargando formulario...</p>
+          </div>
         </div>
       </div>
     </div>

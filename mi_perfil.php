@@ -9,66 +9,24 @@ if (isset($_SESSION['id_paciente'])) {
      $row = consultarPaciente($link, $vUsuario);
 } else {
      $_SESSION['MensajeTexto'] = "Error: acceso al sistema no registrado.";
-     $_SESSION['MensajeTipo'] = "p-3 mb-2 bg-danger text-white";
+     $_SESSION['MensajeTipo'] = "danger";
      header("Location: ./index.php");
      exit();
 }
 
-/* ============================================================
-   Consultas para el Dashboard Principal
-   ============================================================ */
-
-// Estadísticas del paciente
-$sqlCitas = "
-  SELECT 
-    COUNT(*) as total,
-    SUM(CASE WHEN estado = 'A' THEN 1 ELSE 0 END) as realizadas,
-    SUM(CASE WHEN fecha_cita >= CURDATE() AND estado = 'I' THEN 1 ELSE 0 END) as proximas
-  FROM citas 
-  WHERE id_paciente = ?
-";
-$stmt = $link->prepare($sqlCitas);
-$stmt->bind_param('i', $vUsuario);
-$stmt->execute();
-$stats = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-
-// Contar presupuestos
-$sqlPresupuestos = "SELECT COUNT(*) as total FROM presupuesto WHERE id_paciente = ?";
-$stmt = $link->prepare($sqlPresupuestos);
-$stmt->bind_param('i', $vUsuario);
-$stmt->execute();
-$statsPresupuestos = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-
-// Contar tratamientos
-$sqlTratamientos = "
-  SELECT COUNT(*) as total 
-  FROM presupuesto_detalle pd
-  INNER JOIN presupuesto p ON p.id_presupuesto = pd.id_presupuesto
-  WHERE p.id_paciente = ? AND p.estado = 'aprobado'
-";
-$stmt = $link->prepare($sqlTratamientos);
-$stmt->bind_param('i', $vUsuario);
-$stmt->execute();
-$statsTratamientos = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-
 /* ====== Variables del sidebar ====== */
-$SIDEBAR_ACTIVE = 'panel';
+$SIDEBAR_ACTIVE = 'perfil';
 $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Perfect Teeth – Mi Panel</title>
+  <title>Perfect Teeth – Mi Perfil</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="./src/img/logo.png" type="image/png" />
   
-  <!-- Bootstrap -->
   <link rel="stylesheet" href="src/css/bootstrap.min.css">
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="src/css/font-awesome.min.css">
   
   <style>
@@ -163,100 +121,119 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
       box-shadow:0 10px 25px rgba(15,23,42,.12);
     }
 
-    /* ===== Estadísticas ===== */
-    .stats-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
-      gap:1.25rem;
-      margin-bottom:2rem;
-    }
-    .stat-box{
-      background:linear-gradient(135deg, var(--brand) 0%, #0056d2 100%);
-      color:white;
-      padding:1.75rem;
-      border-radius:var(--radius);
+    /* ===== Perfil ===== */
+    .profile-card{
       text-align:center;
-      box-shadow:0 4px 15px rgba(13,110,253,0.3);
-      transition:all 0.3s ease;
+      padding:2rem;
     }
-    .stat-box:hover{
-      transform:translateY(-5px);
-      box-shadow:0 8px 25px rgba(13,110,253,0.4);
-    }
-    .stat-box h3{
-      font-size:2.5rem; margin:.5rem 0; font-weight:700;
-    }
-    .stat-box p{
-      margin:0; font-size:0.95rem; opacity:0.95; text-transform:uppercase; letter-spacing:1px;
-    }
-    .stat-box i{
-      font-size:2rem; opacity:0.8; margin-bottom:.5rem;
-    }
-    .stat-box.green{ background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%); box-shadow:0 4px 15px rgba(17,153,142,0.3); }
-    .stat-box.green:hover{ box-shadow:0 8px 25px rgba(17,153,142,0.4); }
-    .stat-box.pink{ background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%); box-shadow:0 4px 15px rgba(240,147,251,0.3); }
-    .stat-box.pink:hover{ box-shadow:0 8px 25px rgba(240,147,251,0.4); }
-    .stat-box.orange{ background:linear-gradient(135deg, #fa709a 0%, #fee140 100%); box-shadow:0 4px 15px rgba(250,112,154,0.3); }
-    .stat-box.orange:hover{ box-shadow:0 8px 25px rgba(250,112,154,0.4); }
 
-    /* ===== Sección de bienvenida ===== */
-    .welcome-section{
-      background:linear-gradient(135deg, var(--brand) 0%, #0056d2 100%);
-      color:white;
-      padding:2.5rem;
-      border-radius:var(--radius);
-      margin-bottom:2rem;
-      box-shadow:0 6px 20px rgba(13,110,253,0.3);
+    .profile-card img{
+      width:150px;
+      height:150px;
+      object-fit:cover;
+      border-radius:50%;
+      border:5px solid var(--brand);
+      box-shadow:0 8px 25px rgba(13,110,253,0.3);
+      margin-bottom:1.5rem;
     }
-    .welcome-section h1{
-      font-size:2.2rem;
+
+    .profile-card h3{
+      margin:1rem 0 0.5rem;
+      font-size:1.8rem;
       font-weight:700;
+      color:#333;
+    }
+
+    .profile-card .subtitle{
+      color:#6c757d;
+      font-size:1rem;
       margin-bottom:0.5rem;
     }
-    .welcome-section p{
-      font-size:1.1rem;
-      opacity:0.95;
-      margin:0;
+
+    .profile-card .email-badge{
+      display:inline-block;
+      background:var(--brand-100);
+      color:var(--brand);
+      padding:0.5rem 1rem;
+      border-radius:20px;
+      font-size:0.9rem;
+      margin-top:0.5rem;
     }
 
-    /* ===== Accesos rápidos ===== */
-    .quick-access{
+    .action-buttons{
       display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
-      gap:1.25rem;
+      grid-template-columns:1fr;
+      gap:1rem;
       margin-top:2rem;
     }
-    .quick-link{
-      background:white;
-      padding:1.5rem;
-      border-radius:var(--radius);
-      text-align:center;
-      text-decoration:none;
-      color:#333;
-      border:2px solid rgba(0,0,0,.06);
-      transition:all 0.3s ease;
-    }
-    .quick-link:hover{
-      transform:translateY(-5px);
-      box-shadow:0 8px 25px rgba(13,110,253,0.2);
-      border-color:var(--brand);
-      text-decoration:none;
-      color:var(--brand);
-    }
-    .quick-link i{
-      font-size:2.5rem;
-      color:var(--brand);
-      margin-bottom:0.75rem;
-    }
-    .quick-link h4{
-      margin:0.5rem 0 0.25rem;
-      font-size:1.1rem;
+
+    .btn-gradient{
+      background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color:white;
+      border:none;
+      padding:12px 30px;
+      border-radius:25px;
       font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      transition:all 0.3s ease;
+      box-shadow:0 4px 15px rgba(102,126,234,0.3);
+      text-decoration:none;
+      display:inline-block;
+      text-align:center;
     }
-    .quick-link p{
-      margin:0;
-      font-size:0.85rem;
+    
+    .btn-gradient:hover{
+      transform:translateY(-3px);
+      box-shadow:0 6px 25px rgba(102,126,234,0.5);
+      color:white;
+      text-decoration:none;
+    }
+
+    .btn-gradient.success{
+      background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      box-shadow:0 4px 15px rgba(17,153,142,0.3);
+    }
+
+    .btn-gradient.success:hover{
+      box-shadow:0 6px 25px rgba(17,153,142,0.5);
+    }
+
+    .btn-gradient.warning{
+      background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      box-shadow:0 4px 15px rgba(240,147,251,0.3);
+    }
+
+    .btn-gradient.warning:hover{
+      box-shadow:0 6px 25px rgba(240,147,251,0.5);
+    }
+
+    /* ===== Info Card ===== */
+    .info-card{
+      padding:1.5rem;
+    }
+
+    .info-row{
+      display:flex;
+      padding:1rem 0;
+      border-bottom:1px solid #f0f0f0;
+      align-items:center;
+    }
+
+    .info-row:last-child{
+      border-bottom:none;
+    }
+
+    .info-label{
+      font-weight:700;
+      color:#333;
+      width:180px;
+      flex-shrink:0;
+    }
+
+    .info-value{
       color:#6c757d;
+      flex:1;
     }
 
     /* ===== Alertas ===== */
@@ -304,28 +281,19 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
       main{ margin-left:var(--sidebar-w); }
     }
     @media (max-width:768px){
-      .stats-grid{
-        grid-template-columns:repeat(2, 1fr);
+      .info-row{
+        flex-direction:column;
+        align-items:flex-start;
       }
-      .stat-box h3{
-        font-size:2rem;
+      .info-label{
+        width:100%;
+        margin-bottom:0.5rem;
       }
-      .welcome-section h1{
-        font-size:1.8rem;
-      }
-      .d-md-none{ display:none !important; }
     }
     @media (max-width:575.98px){
       :root{ --sidebar-w:220px; }
       .sidebar{ width:var(--sidebar-w); }
       main{ margin-left:var(--sidebar-w); }
-      .stats-grid{
-        grid-template-columns:1fr;
-      }
-      .quick-access{
-        grid-template-columns:1fr;
-      }
-      .d-lg-none{ display:none !important; }
     }
   </style>
 </head>
@@ -347,19 +315,19 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
       <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='panel'?'active':''); ?>" href="principal.php">
         <i class="fa fa-tachometer"></i><span>Mi Panel</span>
       </a>
-      <a class="nav-link" href="mis_citas.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='citas'?'active':''); ?>" href="mis_citas.php">
         <i class="fa fa-calendar-check-o"></i><span>Mis Citas</span>
       </a>
-      <a class="nav-link" href="agendar_cita.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='agendar'?'active':''); ?>" href="agendar_cita.php">
         <i class="fa fa-calendar-plus-o"></i><span>Nueva Cita</span>
       </a>
-      <a class="nav-link" href="mis_presupuestos.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='presupuestos'?'active':''); ?>" href="mis_presupuestos.php">
         <i class="fa fa-file-text-o"></i><span>Mis Presupuestos</span>
       </a>
-      <a class="nav-link" href="mis_tratamientos.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='tratamientos'?'active':''); ?>" href="mis_tratamientos.php">
         <i class="fa fa-medkit"></i><span>Mis Tratamientos</span>
       </a>
-      <a class="nav-link" href="mi_perfil.php">
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='perfil'?'active':''); ?>" href="mi_perfil.php">
         <i class="fa fa-user-circle"></i><span>Mi Perfil</span>
       </a>
       <a class="nav-link" href="./Reportes/reporte.php" target="_blank">
@@ -380,16 +348,8 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
     <header class="topbar">
       <div class="container-max d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
-          <i class="fa fa-tachometer" style="color:#0d6efd;"></i>
-          <span style="font-weight:600;">Mi Panel Personal</span>
-        </div>
-        <div class="d-flex align-items-center gap-3">
-          <span class="text-muted d-md-none d-lg-inline">
-            <i class="fa fa-phone"></i> +1 (849) 856 4014
-          </span>
-          <span class="text-muted d-lg-none d-none d-md-inline">
-            <i class="fa fa-clock-o"></i> 8:00 AM - 7:00 PM
-          </span>
+          <i class="fa fa-user-circle" style="color:#0d6efd;"></i>
+          <span style="font-weight:600;">Mi Perfil</span>
         </div>
       </div>
     </header>
@@ -410,87 +370,134 @@ $PATIENT_NAME = htmlspecialchars($row['nombre'].' '.$row['apellido']);
           ?>
         <?php endif; ?>
 
-        <!-- Bienvenida -->
-        <div class="welcome-section">
-          <h1>
-            <i class="fa fa-hand-peace-o"></i> 
-            ¡Bienvenido<?php echo ($row['sexo'] === 'Femenino' ? 'a' : ''); ?>, <?php echo htmlspecialchars($row['nombre']); ?>!
-          </h1>
-          <p>Gestiona tus citas, presupuestos y mantén tu salud dental al día</p>
-        </div>
+        <div class="row">
+          
+          <!-- Columna Izquierda: Foto y Acciones -->
+          <div class="col-md-4">
+            <div class="card">
+              <div class="profile-card">
+                <?php if ($row['sexo'] == 'Masculino'): ?>
+                  <img src="./src/img/iconoH.jpg" alt="Perfil">
+                <?php else: ?>
+                  <img src="./src/img/iconoM.jpg" alt="Perfil">
+                <?php endif; ?>
 
-        <!-- Estadísticas -->
-        <div class="stats-grid">
-          <div class="stat-box">
-            <i class="fa fa-calendar-check-o"></i>
-            <h3><?php echo $stats['proximas']; ?></h3>
-            <p>Citas Próximas</p>
-          </div>
-          
-          <div class="stat-box green">
-            <i class="fa fa-check-circle"></i>
-            <h3><?php echo $stats['realizadas']; ?></h3>
-            <p>Citas Realizadas</p>
-          </div>
-          
-          <div class="stat-box pink">
-            <i class="fa fa-file-text-o"></i>
-            <h3><?php echo $statsPresupuestos['total']; ?></h3>
-            <p>Presupuestos</p>
-          </div>
-          
-          <div class="stat-box orange">
-            <i class="fa fa-heartbeat"></i>
-            <h3><?php echo $statsTratamientos['total']; ?></h3>
-            <p>Tratamientos</p>
-          </div>
-        </div>
+                <h3><?php echo htmlspecialchars($row['nombre'] . ' ' . $row['apellido']); ?></h3>
+                <p class="subtitle">Perfect Teeth</p>
+                <div class="email-badge">
+                  <i class="fa fa-envelope"></i> 
+                  <?php echo htmlspecialchars($row['correo_electronico']); ?>
+                </div>
 
-        <!-- Accesos Rápidos -->
-        <div class="card">
-          <div style="padding:1.5rem;">
-            <h3 style="margin:0 0 1.5rem; color:#333;">
-              <i class="fa fa-bolt" style="color:#0d6efd;"></i> Accesos Rápidos
-            </h3>
-            
-            <div class="quick-access">
-              <a href="mis_citas.php" class="quick-link">
-                <i class="fa fa-calendar"></i>
-                <h4>Mis Citas</h4>
-                <p>Ver todas mis citas</p>
-              </a>
-              
-              <a href="agendar_cita.php" class="quick-link">
-                <i class="fa fa-calendar-plus-o"></i>
-                <h4>Agendar Cita</h4>
-                <p>Programar nueva cita</p>
-              </a>
-              
-              <a href="mis_presupuestos.php" class="quick-link">
-                <i class="fa fa-file-text-o"></i>
-                <h4>Presupuestos</h4>
-                <p>Revisar presupuestos</p>
-              </a>
-              
-              <a href="mis_tratamientos.php" class="quick-link">
-                <i class="fa fa-medkit"></i>
-                <h4>Tratamientos</h4>
-                <p>Historial de tratamientos</p>
-              </a>
-              
-              <a href="mi_perfil.php" class="quick-link">
-                <i class="fa fa-user-circle"></i>
-                <h4>Mi Perfil</h4>
-                <p>Editar información</p>
-              </a>
-              
-              <a href="./Reportes/reporte.php" target="_blank" class="quick-link">
-                <i class="fa fa-file-pdf-o"></i>
-                <h4>Reportes</h4>
-                <p>Descargar reportes</p>
-              </a>
+                <div class="action-buttons">
+                  <a class="btn-gradient" href="./editar_paciente.php">
+                    <i class="fa fa-edit"></i> Editar Perfil
+                  </a>
+                  
+                  <a class="btn-gradient success" target="_blank" href="./Reportes/reporte.php">
+                    <i class="fa fa-file-pdf-o"></i> Reporte de Citas
+                  </a>
+                  
+                  <a class="btn-gradient warning" target="_blank" href="./Reportes/reporteH.php">
+                    <i class="fa fa-history"></i> Historial Completo
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
+
+          <!-- Columna Derecha: Información Personal -->
+          <div class="col-md-8">
+            <div class="card">
+              <div class="info-card">
+                <h4 style="margin:0 0 1.5rem; color:#333; font-weight:700;">
+                  <i class="fa fa-info-circle" style="color:#0d6efd;"></i> 
+                  Información Personal
+                </h4>
+
+                <div class="info-row">
+                  <div class="info-label">
+                    <i class="fa fa-user"></i> Nombre
+                  </div>
+                  <div class="info-value">
+                    <?php echo htmlspecialchars($row['nombre']); ?>
+                  </div>
+                </div>
+
+                <div class="info-row">
+                  <div class="info-label">
+                    <i class="fa fa-user"></i> Apellido
+                  </div>
+                  <div class="info-value">
+                    <?php echo htmlspecialchars($row['apellido']); ?>
+                  </div>
+                </div>
+
+                <div class="info-row">
+                  <div class="info-label">
+                    <i class="fa fa-id-card"></i> Cédula
+                  </div>
+                  <div class="info-value">
+                    <?php echo htmlspecialchars($row['cedula']); ?>
+                  </div>
+                </div>
+
+                <div class="info-row">
+                  <div class="info-label">
+                    <i class="fa fa-venus-mars"></i> Sexo
+                  </div>
+                  <div class="info-value">
+                    <?php echo htmlspecialchars($row['sexo']); ?>
+                  </div>
+                </div>
+
+                <div class="info-row">
+                  <div class="info-label">
+                    <i class="fa fa-envelope"></i> Correo
+                  </div>
+                  <div class="info-value">
+                    <?php echo htmlspecialchars($row['correo_electronico']); ?>
+                  </div>
+                </div>
+
+                <div class="info-row">
+                  <div class="info-label">
+                    <i class="fa fa-phone"></i> Teléfono
+                  </div>
+                  <div class="info-value">
+                    <?php echo htmlspecialchars($row['telefono']); ?>
+                  </div>
+                </div>
+
+                <div class="info-row">
+                  <div class="info-label">
+                    <i class="fa fa-birthday-cake"></i> Fecha de Nacimiento
+                  </div>
+                  <div class="info-value">
+                    <?php echo date('d/m/Y', strtotime($row['fecha_nacimiento'])); ?>
+                  </div>
+                </div>
+
+                <?php
+                // Calcular edad
+                $fecha_nac = new DateTime($row['fecha_nacimiento']);
+                $hoy = new DateTime();
+                $edad = $hoy->diff($fecha_nac)->y;
+                ?>
+
+                <div class="info-row">
+                  <div class="info-label">
+                    <i class="fa fa-calendar"></i> Edad
+                  </div>
+                  <div class="info-value">
+                    <?php echo $edad; ?> años
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>

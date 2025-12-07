@@ -156,6 +156,21 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
     }
 
     .alert-dismissible .btn-close{ padding:.9rem 1rem; }
+
+    /* Estilo para el botón cerrar del modal (×) */
+    .modal-header .close {
+      background: transparent;
+      border: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+      opacity: 0.9;
+      padding: 0;
+      cursor: pointer;
+    }
+    .modal-header .close:hover {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -181,6 +196,10 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
       <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='calendario'?'active':''); ?>" href="calendar.php">
         <i class="far fa-calendar-alt"></i><span>Calendario</span>
       </a>
+      <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='historial'?'active':''); ?>" href="historial_medico.php">
+    <i class="fas fa-notes-medical"></i><span>Historial médico</span>
+</a>
+
       <a class="nav-link <?php echo ($SIDEBAR_ACTIVE==='odontograma'?'active':''); ?>" href="../odontograma.php">
         <i class="fas fa-tooth"></i><span>Odontograma</span>
       </a>
@@ -218,7 +237,7 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
         <?php if (!empty($_SESSION['MensajeTexto'])): ?>
           <div class="alert <?php echo $_SESSION['MensajeTipo'] ?? 'alert-info'; ?> alert-dismissible fade show" role="alert">
             <?php echo htmlspecialchars($_SESSION['MensajeTexto']); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            
           </div>
           <?php $_SESSION['MensajeTexto'] = null; $_SESSION['MensajeTipo'] = null; ?>
         <?php endif; ?>
@@ -314,7 +333,7 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
         <h5 class="modal-title">
           <i class="fas fa-edit me-2"></i>Editar cita
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
       </div>
 
       <div class="modal-body" id="contenedor-editar-cita">
@@ -378,11 +397,9 @@ $AVATAR_IMG     = ($DOCTOR_SEX === 'Femenino') ? '../src/img/odontologa.png' : '
 <script>
 function abrirModalEditar(id_cita) {
     $("#modalEditarCita").modal("show");
-
+    $("#contenedor-editar-cita").html('<div class="text-center p-4"><i class="fas fa-spinner fa-spin fa-2x text-primary"></i><p class="mt-2">Cargando...</p></div>');
     $("#contenedor-editar-cita").load("realizar_consulta_modal.php?id=" + id_cita);
-
 }
-
 </script>
 <!-- ======================================================== -->
 
